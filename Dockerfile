@@ -26,11 +26,11 @@ RUN printf "I'm building for TARGETPLATFORM=${TARGETPLATFORM}" \
 
 WORKDIR /emailengine
 
-# Install dependencies before copying the app. npm ci is by far the slowest step in this
+# Install dependencies before copying any source. npm ci is by far the slowest step in this
 # build - it runs under QEMU emulation for the non-native architecture - and Docker invalidates
-# every layer below a changed one. The patch script is the exception: postinstall rewrites
-# email-text-tools, so the script has to be in the install layer. A change to it re-runs npm ci.
-COPY scripts/email-text-tools-window.js scripts/email-text-tools-window.js
+# every layer below a changed one. With the sources copied first, an edit to any file busted
+# this layer and re-ran the whole install; keeping it above them means it is only re-run when
+# the lockfile actually changes.
 COPY package.json package.json
 COPY package-lock.json package-lock.json
 # --omit=optional, as the binary build does: the only optional runtime packages are msgpackr-extract
