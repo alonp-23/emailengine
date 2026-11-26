@@ -66,34 +66,56 @@
 
                 {{#if searchTarget}}
                 <!-- Topbar search -->
-                <form class="flex items-center gap-2 grow max-w-xl max-sm:order-last max-sm:w-full max-sm:max-w-none" method="get" action="{{searchTarget}}">
+                <form class="flex items-center gap-2 grow {{#if filterMenu}}flex-wrap max-w-3xl{{else}}max-w-xl{{/if}} max-sm:order-last max-sm:w-full max-sm:max-w-none" method="get" action="{{searchTarget}}">
 
-                    {{#if stateOptions}}
-                    <div class="dropdown relative inline-flex shrink-0">
-                        <button type="button" id="search-state-dropdown" class="dropdown-toggle btn btn-soft btn-sm"
+                    {{#if filterMenu}}
+                    {{!-- multi-select filter menu: one checkbox group per filter, applied with the form.
+                          --auto-close:inside keeps it open while boxes are ticked --}}
+                    <div class="dropdown relative inline-flex shrink-0 [--auto-close:inside]">
+                        <button type="button" id="search-filter-dropdown" class="dropdown-toggle btn btn-soft btn-sm"
                             aria-haspopup="menu" aria-expanded="false">
-                            {{#if selectedState}}{{selectedState.label}}{{else}}All{{/if}}
+                            <span class="icon-[tabler--filter] size-4"></span>
+                            {{filterMenu.label}}
                             <span class="icon-[tabler--chevron-down] size-4"></span>
                         </button>
-                        <ul class="dropdown-menu dropdown-open:opacity-100 hidden min-w-40"
-                            role="menu" aria-orientation="vertical" aria-labelledby="search-state-dropdown">
-                            {{#each stateOptions}}
-                            {{#if divider}}
-                            <li><div class="divider my-1"></div></li>
-                            {{else}}
-                            <li><a class="dropdown-item{{#if selected}} dropdown-active{{/if}}" href="{{url}}">{{label}}</a></li>
-                            {{/if}}
-                            {{/each}}
-                        </ul>
+                        <div class="dropdown-menu dropdown-open:opacity-100 hidden min-w-60 p-0"
+                            role="menu" aria-labelledby="search-filter-dropdown">
+                            <div class="max-h-96 overflow-y-auto p-2">
+                                {{#each filterMenu.quickViews}}
+                                <a class="dropdown-item{{#if active}} dropdown-active{{/if}}" href="{{url}}">{{label}}</a>
+                                {{/each}}
+                                <div class="divider my-1"></div>
+                                {{#each filterMenu.groups}}
+                                <div class="dropdown-header px-2 pt-2 pb-1 text-xs uppercase text-base-content/60">{{title}}</div>
+                                {{#each options}}
+                                <label class="dropdown-item flex cursor-pointer items-center gap-2">
+                                    <input type="checkbox" class="checkbox checkbox-sm" name="{{../name}}" value="{{value}}"{{#if checked}} checked{{/if}}>
+                                    <span>{{label}}</span>
+                                </label>
+                                {{/each}}
+                                {{/each}}
+                            </div>
+                            <div class="flex justify-end gap-2 border-t border-base-content/10 p-2">
+                                <button type="button" class="btn btn-text btn-sm filter-menu-clear">Clear</button>
+                                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                            </div>
+                        </div>
                     </div>
-                    <input type="hidden" name="state" value="{{state}}">
                     {{/if}}
 
                     {{#each searchHidden}}
                     <input type="hidden" name="{{name}}" value="{{value}}">
                     {{/each}}
 
-                    <div class="input input-sm grow">
+                    {{#if searchByOptions}}
+                    <select class="select select-sm w-auto shrink-0" name="searchBy" aria-label="Search in">
+                        {{#each searchByOptions}}
+                        <option value="{{value}}"{{#if selected}} selected{{/if}}>{{label}}</option>
+                        {{/each}}
+                    </select>
+                    {{/if}}
+
+                    <div class="input input-sm grow w-auto min-w-40">
                         <span class="icon-[tabler--search] text-base-content/60 my-auto me-2 size-4 shrink-0"></span>
                         <input type="text" class="grow" placeholder="{{searchPlaceholder}}" aria-label="Search"
                             name="query" value="{{query}}">

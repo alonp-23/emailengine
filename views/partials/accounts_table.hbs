@@ -6,6 +6,8 @@
         showActions - true to render the trailing kebab (Open / Delete) column;
                       the page must then also provide a #deleteAccount confirm
                       modal (accounts index only; omitted on the thread reuse)
+        selectable  - true to render a leading checkbox column for batch actions; the
+                      checkboxes post to the page's #batchDeleteForm (accounts index only)
       Context: accounts (row objects incl. stateLabel/type) plus the
       showPaging/prevPage/nextPage/pageLinks pagination values. --}}
 {{#if accounts}}
@@ -15,6 +17,11 @@
         <table class="table ee-table-stack">
             <thead>
                 <tr>
+                    {{#if selectable}}
+                    <th class="w-10">
+                        <input type="checkbox" class="checkbox checkbox-sm" id="batchSelectAll" aria-label="Select all accounts on this page">
+                    </th>
+                    {{/if}}
                     <th>Name</th>
                     <th>Email</th>
                     <th>Type</th>
@@ -28,7 +35,14 @@
             <tbody>
                 {{#each accounts}}
                 <tr class="hover:bg-base-200/60">
-                    <td class="relative">
+                    {{#if ../selectable}}
+                    {{!-- no row-link overlay here, so clicking the box selects instead of opening --}}
+                    <td class="w-10">
+                        <input type="checkbox" class="checkbox checkbox-sm batch-select" name="accounts" value="{{account}}"
+                            form="batchDeleteForm" aria-label="Select {{#if name}}{{name}}{{else}}{{email}}{{/if}}">
+                    </td>
+                    {{/if}}
+                    <td class="relative"{{#if ../selectable}} data-label="Name"{{/if}}>
                         {{> ui/row-link href=(concat "/admin/accounts/" (urlpart account)) label="Open account"}}
                         <div><strong>{{name}}</strong></div>
                         {{> ui/entity-id id=account label="Account ID"}}

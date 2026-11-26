@@ -15,6 +15,8 @@ ARGV:
       Folded here as well as by the caller, so a caller that passes it as typed still gets a
       case-insensitive search. string.lower() folds ASCII only; a caller that has to match
       non-ASCII has to fold the needle itself before passing it in.
+  [6] searchField - Optional field the search is limited to: 'name', 'email', 'account', or
+      'domain' (the part of the address after the last "@"). Empty searches all three fields.
 
 Returns:
   Array with:
@@ -33,6 +35,7 @@ local skip = tonumber(ARGV[2]) or 0;
 local count = tonumber(ARGV[3]) or 0;
 local prefix = ARGV[4];
 local strsearch = string.lower(ARGV[5] or '');
+local searchField = ARGV[6] or '';
 
 -- filterState may be a comma-separated list; build a lookup set once
 local stateSet = nil;
@@ -78,15 +81,30 @@ for index, account in ipairs(list) do
     local strmatch = true
 
     if strsearch and strsearch  ~= '' then
-        local accountData = redis.call("HGET", prefix .. "iad:" .. account, "account") or ""; 
-        local name = redis.call("HGET", prefix .. "iad:" .. account, "name") or ""; 
-        local email = redis.call("HGET", prefix .. "iad:" .. account, "email") or "";
+        local key = prefix .. "iad:" .. account;
+        local haystacks;
 
-        -- Search for substring in account, name, or email fields
-        if string.find(string.lower(accountData), strsearch, 0, true) or string.find(string.lower(name), strsearch, 0, true) or string.find(string.lower(email), strsearch, 0, true) then
-            strmatch = true
+        if searchField == 'domain' then
+            local email = redis.call("HGET", key, "email") or "";
+            local at = string.match(email, "^.*()@");  -- position of the last "@"
+            haystacks = {at and string.sub(email, at + 1) or ""};
+        elseif searchField == 'name' or searchField == 'email' or searchField == 'account' then
+            haystacks = {redis.call("HGET", key, searchField) or ""};
         else
-            strmatch = false
+            haystacks = {
+                redis.call("HGET", key, "account") or "",
+                redis.call("HGET", key, "name") or "",
+                redis.call("HGET", key, "email") or ""
+            };
+        end
+
+        -- Search for substring in the selected fields
+        strmatch = false;
+        for _, value in ipairs(haystacks) do
+            if string.find(string.lower(value), strsearch, 1, true) then
+                strmatch = true;
+                break;
+            end
         end
     end
 

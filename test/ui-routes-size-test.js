@@ -56,9 +56,13 @@ test('routes-ui.js stays within the size budget', () => {
 // handler code. Route option objects and joi schemas are expressions, so a schema is not counted.
 const MODULE_BUDGETS = {
     // 514: the hosted form's discovery, OAuth2 sign-in page and listed applications live in provider-signin.js
-    'account-routes.js': 514,
+    // 503: the listing's URL builder, filters and filter menu live in account-listing.js
+    // 504: requires the listing view story, map-account-listing-view.js
+    'account-routes.js': 504,
     // helpers of the account pages, moved out of account-routes.js
     'account-edit-form.js': 65,
+    // the listing's filter values, query schemas, listing URL and batch delete route
+    'account-listing.js': 28,
     'account-page.js': 49,
     'account-setup.js': 32,
     // 306: the license page moved to license-routes.js
@@ -71,6 +75,8 @@ const MODULE_BUDGETS = {
     // 38: the Node.js runtime notice on the dashboard and the upgrade page (its require)
     'dashboard-routes.js': 38,
     'dbsc-routes.js': 6,
+    // the accounts listing's batch delete story
+    'delete-accounts-in-batch.js': 30,
     'export-routes.js': 49,
     'form-lists.js': 8,
     'gmail-service-auth.js': 12,
@@ -78,6 +84,8 @@ const MODULE_BUDGETS = {
     // the license page, moved out of admin-config-routes.js with the subscription check
     'license-routes.js': 107,
     'internals-routes.js': 146,
+    // the accounts listing's view story
+    'map-account-listing-view.js': 25,
     'mcp-consent-routes.js': 87,
     'network-config-routes.js': 121,
     'oauth-config-routes.js': 297,
