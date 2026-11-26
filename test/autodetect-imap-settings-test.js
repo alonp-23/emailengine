@@ -47,6 +47,7 @@ const {
 } = require('../lib/autodetect-imap-settings');
 const { redis } = require('../lib/db');
 const registerRedisTeardown = require('./helpers/redis-teardown');
+const { textResponse, autoconfigDoc } = require('./helpers/autodetect-stand-ins');
 
 registerRedisTeardown(redis);
 
@@ -117,10 +118,15 @@ test('getAppPassword', async t => {
         assert.strictEqual(getAppPassword('user@customdomain.com', 'gmail-smtp-in.l.google.com', gt).provider, 'Gmail');
     });
 
+    await t.test('matches Gmail by the single smtp.google.com exchange Google Workspace uses', () => {
+        assert.strictEqual(getAppPassword('user@customdomain.com', 'smtp.google.com', gt).provider, 'Gmail');
+        assert.strictEqual(getAppPassword('user@customdomain.com', 'smtp.google.com.example.net', gt), false);
+    });
+
     await t.test('returns the Microsoft warning for outlook.com exchanges', () => {
         const result = getAppPassword('user@customdomain.com', 'customdomain.mail.protection.outlook.com', gt);
         assert.strictEqual(result.provider, 'Microsoft');
-        assert.match(result.warning, /password-based sign-ins/i);
+        assert.match(result.warning, /no longer accepts passwords.*IMAP connections/i);
     });
 
     await t.test('matches T-Online by exchange', () => {
@@ -998,15 +1004,6 @@ test('runAutodiscovery', async t => {
     });
 });
 
-// A minimal Mozilla autoconfig document naming an IMAP server, optionally padded past the size cap
-const autoconfigDoc = (host, padding) => `<?xml version="1.0" encoding="UTF-8"?>
-<clientConfig version="1.1">
-  <!--${padding || ''}-->
-  <emailProvider id="example.com">
-    <incomingServer type="imap"><hostname>${host}</hostname><port>993</port><socketType>SSL</socketType></incomingServer>
-  </emailProvider>
-</clientConfig>`;
-
 const noDns = {
     resolveMx: async () => {
         throw Object.assign(new Error('ENOTFOUND'), { code: 'ENOTFOUND' });
@@ -1015,9 +1012,6 @@ const noDns = {
         throw Object.assign(new Error('ENOTFOUND'), { code: 'ENOTFOUND' });
     }
 };
-
-// A stand-in response carrying a text body, like the one runAutodiscovery's stubs return
-const textResponse = (status, body) => ({ ok: status >= 200 && status < 300, status, url: '', headers: { get: () => null }, text: async () => body || '' });
 
 test('processAutoconfigFile tolerates a server without port or socketType', async t => {
     await t.test('a missing <port> and <socketType> do not discard the document', async () => {
@@ -1488,5 +1482,123 @@ test('autodiscovery reaches the endpoints the sequence names', async t => {
         for (const call of seen.filter(entry => entry.url.startsWith('http://'))) {
             assert.ok(!call.headers.Authorization, `${call.url} must carry no Authorization header`);
         }
+    });
+});
+
+test('MX provider chain (stand-in DNS and fetch)', async t => {
+    const mxDns = exchange => ({
+        resolveMx: async () => [{ priority: 10, exchange }],
+        resolveSrv: async name => {
+            switch (name) {
+                case '_imaps._tcp.gmail.com':
+                    return [{ name: 'imap.gmail.com', port: 993, priority: 5, weight: 1 }];
+                case '_submissions._tcp.gmail.com':
+                    return [{ name: 'smtp.gmail.com', port: 465, priority: 5, weight: 1 }];
+                default:
+                    throw Object.assign(new Error('ENOTFOUND'), { code: 'ENOTFOUND' });
+            }
+        }
+    });
+
+    // Records every request, and answers an autoconfig document for the hosts listed
+    const recordingFetch = (seen, answers) => async url => {
+        const host = new URL(url).hostname;
+        seen.push(host);
+        if (answers[host]) {
+            return textResponse(200, autoconfigDoc(answers[host]));
+        }
+        return textResponse(404);
+    };
+
+    const resolveFor = async (exchange, answers) => {
+        const seen = [];
+        const res = await resolver('user@customdomain.com', gt, null, {
+            dns: mxDns(exchange),
+            timeout: 2000,
+            fetchResource: recordingFetch(seen, answers || {})
+        });
+        return { res, seen };
+    };
+
+    // Each row: the exchange, the IMAP host the chain resolves it to, and the hosts it asks over HTTP
+    const cases = [
+        { exchange: 'gmail-smtp-in.l.google.com', imap: 'imap.gmail.com', fetched: [] },
+        { exchange: 'smtp.google.com', imap: 'imap.gmail.com', fetched: [] },
+        { exchange: 'mx.yandex.net', imap: 'imap.yandex.example', fetched: ['autoconfig.yandex.ru'] },
+        { exchange: 'mx3.zone.eu', imap: 'mail.zone.ee', fetched: [] },
+        { exchange: 'emx.mail.larksuite.com', imap: 'imap.larksuite.com', fetched: [] },
+        { exchange: 'mx1.zonemx.eu', imap: 'imap.zonemx.example', fetched: ['autoconfig.zone.ee'] },
+        { exchange: 'inbound-smtp.us-east-1.amazonaws.com', imap: 'imap.mail.us-east-1.awsapps.com', fetched: [] },
+        { exchange: 'mx.zoho.eu', imap: 'imappro.zoho.eu', fetched: [] },
+        { exchange: 'mx.zoho.com', imap: 'imappro.zoho.com', fetched: [] },
+        { exchange: 'example-com.mail.protection.outlook.com', imap: 'outlook.office365.com', fetched: [] },
+        { exchange: 'mx.dka.mailcore.net', imap: 'imap.dka.mailcore.net', fetched: [] },
+        { exchange: 'ekiri.ee', imap: 'turvaline.ekiri.ee', fetched: [] },
+        { exchange: 'mx2.sg.aliyun.com', imap: 'imap.sg.aliyun.com', fetched: [] },
+        { exchange: 'al-ip4-mx-vip2.prodigy.net', imap: 'imap.mail.att.net', fetched: [] },
+        { exchange: 'mx3.naver.com', imap: 'imap.naver.com', fetched: [] },
+        { exchange: 'mxbiz2.qq.com', imap: 'imap.exmail.qq.com', fetched: [] }
+    ];
+
+    const answers = { 'autoconfig.yandex.ru': 'imap.yandex.example', 'autoconfig.zone.ee': 'imap.zonemx.example' };
+
+    for (const row of cases) {
+        await t.test(`${row.exchange} resolves from the MX table`, async () => {
+            const { res, seen } = await resolveFor(row.exchange, answers);
+            assert.strictEqual(res.imap.host, row.imap);
+            assert.strictEqual(res._source, 'mx');
+            // A match never falls through to the racing resolvers
+            assert.deepStrictEqual(seen, row.fetched);
+        });
+    }
+
+    await t.test('the WorkMail pattern matches only a real inbound-smtp exchange', async () => {
+        for (const region of ['us-east-1', 'eu-west-1', 'ap-southeast-2']) {
+            const { res } = await resolveFor(`inbound-smtp.${region}.amazonaws.com`);
+            assert.strictEqual(res.imap.host, `imap.mail.${region}.awsapps.com`);
+            assert.strictEqual(res.smtp.host, `smtp.mail.${region}.awsapps.com`);
+        }
+
+        // A name that only contains a WorkMail exchange belongs to whoever owns its suffix, and an
+        // unescaped dot let a different domain stand in for amazonaws.com
+        const fallback = { 'autoconfig.customdomain.com': 'imap.fallback.example' };
+        for (const exchange of [
+            'inbound-smtp.eu-west-1.amazonaws.com.attacker.example',
+            'mx.inbound-smtp.eu-west-1.amazonaws.com',
+            'inbound-smtp.eu-west-1.amazonawsxcom'
+        ]) {
+            const { res } = await resolveFor(exchange, fallback);
+            assert.strictEqual(res.imap.host, 'imap.fallback.example', exchange);
+        }
+
+        // So an exchange under protection.outlook.com is Microsoft 365, whatever it starts with
+        const { res } = await resolveFor('inbound-smtp.eu-west-1.amazonaws.com.mail.protection.outlook.com');
+        assert.strictEqual(res.imap.host, 'outlook.office365.com');
+    });
+
+    await t.test('the two exact entries match only the exact exchange', async () => {
+        for (const exchange of ['mx2.dka.mailcore.net', 'mx.ekiri.ee']) {
+            const { res, seen } = await resolveFor(exchange, { 'autoconfig.customdomain.com': 'imap.fallback.example' });
+            assert.strictEqual(res.imap.host, 'imap.fallback.example', exchange);
+            assert.strictEqual(res._source, 'autoconfig');
+            assert.ok(seen.includes('autoconfig.customdomain.com'));
+        }
+    });
+
+    await t.test('an unknown exchange falls through to the racing resolvers', async () => {
+        const { res } = await resolveFor('mx.unknown-provider.example', { 'autoconfig.customdomain.com': 'imap.fallback.example' });
+        assert.strictEqual(res.imap.host, 'imap.fallback.example');
+        assert.strictEqual(res._source, 'autoconfig');
+    });
+
+    await t.test('a delegated lookup that names no server falls through too', async () => {
+        const { res, seen } = await resolveFor('mx.yandex.net', { 'autoconfig.customdomain.com': 'imap.fallback.example' });
+        assert.strictEqual(res.imap.host, 'imap.fallback.example');
+        assert.ok(seen.includes('autoconfig.yandex.ru'));
+    });
+
+    await t.test('an upper-case exchange is lowered before matching', async () => {
+        const { res } = await resolveFor('MX1.NAVER.COM');
+        assert.strictEqual(res.imap.host, 'imap.naver.com');
     });
 });

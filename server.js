@@ -8,7 +8,6 @@
  * proxy servers (SMTP, IMAP).
  *
  * @module server
- * @requires dotenv
  * @requires worker_threads
  * @requires @zone-eu/wild-config
  * @see {@link https://emailengine.app}
@@ -31,11 +30,8 @@ try {
     // ignore - may fail in some containerized environments
 }
 
-// Load environment variables if not already loaded
-if (!process.env.EE_ENV_LOADED) {
-    require('dotenv').config({ quiet: true });
-    process.env.EE_ENV_LOADED = 'true';
-}
+// Load .env into process.env, if not already loaded
+require('./lib/load-env').loadEnvOnce();
 
 // Set process title for easier identification in process lists
 process.title = 'emailengine';
@@ -50,28 +46,34 @@ try {
     process.exit(1);
 }
 
-// EmailEngine and its dependencies need Node 20 or newer. Checked before anything is required, so an
-// older runtime gets this line instead of a syntax error from a dependency. The check used to be a
-// structuredClone probe, which only caught Node 16 and older.
-if (Number(process.versions.node.split('.')[0]) < 20) {
-    console.error(`Node.js version ${process.version} is not supported. Please upgrade to Node.js 20 or later.`);
+// Checked before anything else is required. Below MIN_NODE undici, which every thread loads at
+// startup, throws when it is loaded, so an older runtime gets this message and the commands to fix it
+// instead of a TypeError from inside a dependency. A one-click DigitalOcean droplet upgrades
+// EmailEngine on its own but not the Node.js it runs on, and that log line is all its operator sees.
+// A release that starts but is outside the supported range is only warned about here and on the
+// dashboard (see lib/node-version.js for the two thresholds).
+const { MIN_NODE, SUPPORTED_RANGE_LABEL, nodeSupport, nodeUpgradeHint } = require('./lib/node-version');
+const nodeSupportLevel = nodeSupport(process.versions.node);
+if (nodeSupportLevel === 'unsupported') {
+    console.error(`EmailEngine requires Node.js ${MIN_NODE} or newer, this is Node.js ${process.version}.\n\n${nodeUpgradeHint()}`);
+    process.exit(1);
+}
+if (nodeSupportLevel === 'outside-range') {
+    console.error(`Node.js ${process.version} is outside the range EmailEngine supports (${SUPPORTED_RANGE_LABEL}). It runs, but please upgrade Node.js.`);
+}
+
+// Validates EENGINE_LOG_REDACT_HEADERS before the logger loads, so a bad entry stops the boot with a
+// one-line message instead of a stack trace
+try {
+    require('./lib/logger-consts');
+} catch (err) {
+    console.error(err.message);
     process.exit(1);
 }
 
-// Within Node 20 the dependency tree itself asks for 20.19.0 (html-to-text 10, the entities release
-// node-html-parser pulls in) or 20.18.1 (undici 7), which is what the engines field declares. npm
-// treats that field as advice, and an older 20.x starts and then fails somewhere in a dependency at
-// runtime, so it is named here. Only a warning: one-click DigitalOcean images upgrade EmailEngine on
-// their own but not the Node they run on, and an instance that works today must not stop at its next
-// self-upgrade over a minor version it may never exercise.
 const { accountDataKey } = require('./lib/redis-keys');
+const { resolveMetricKeys, statBuckets } = require('./lib/worker-metrics');
 const { importPreparedPassword } = require('./lib/prepared-password');
-const { MIN_SUPPORTED_NODE, isBelowSupportedNode } = require('./lib/node-version');
-if (isBelowSupportedNode(process.versions.node)) {
-    console.error(
-        `Node.js version ${process.version} is older than ${MIN_SUPPORTED_NODE}, the oldest release EmailEngine's dependencies support. Some features may fail at runtime. Please upgrade Node.js.`
-    );
-}
 
 const os = require('os');
 
@@ -117,9 +119,6 @@ const MetricsCollector = require('./lib/metrics-collector');
 // Import constants
 const {
     MAX_DAYS_STATS,
-    MESSAGE_NEW_NOTIFY,
-    MESSAGE_DELETED_NOTIFY,
-    CONNECT_ERROR_NOTIFY,
     REDIS_PREFIX,
     ACCOUNT_ADDED_NOTIFY,
     ACCOUNT_DELETED_NOTIFY,
@@ -151,10 +150,9 @@ const { pruneFailedContent } = require('./lib/outbox');
 const { queueCleanAges } = require('./lib/queue-retention');
 const { getFailedJobRetention } = require('./lib/env-setting-overrides');
 const { packRpcError, unpackRpcError } = require('./lib/worker-rpc-error');
-const promClient = require('prom-client');
+const { promClient, setupMetrics, connectionCounts } = require('./lib/metrics');
 const fs = require('fs').promises;
 const crypto = require('crypto');
-const { compareVersions, parseVersion } = require('./lib/utils/version');
 const Joi = require('joi');
 const { settingsSchema } = require('./lib/schemas');
 const settings = require('./lib/settings');
@@ -166,7 +164,9 @@ const { attachBeacon, persistBeaconMarkers } = require('./lib/license-beacon');
 const {
     decide,
     startupPlan,
-    expiredSuspension,
+    needsVersionRecheck,
+    subscriptionCheckState,
+    workerSuspensionChange,
     checkInterval,
     subscriptionView,
     parseSuspension,
@@ -189,12 +189,14 @@ const {
     requeueFailedAccounts,
     forgetAccount,
     shouldRequeueFailedAssignment,
+    findUntrackedAccounts,
     planRebalance
 } = require('./lib/account-assignment');
 const { mapConcurrent } = require('./lib/utils/map-concurrent');
 const { RespawnTracker, retryWithBackoff } = require('./lib/respawn-backoff');
 const { legacySmtpOptionsInUse, REMOVAL_DATE } = require('./lib/deprecations');
 const { heartbeatDiagnostics, eventLoopDelaySeries, threadHeapSeries } = require('./lib/thread-diagnostics');
+const { licenseDaysRemaining, countThreads } = require('./lib/metric-values');
 
 const msgpack = require('./lib/msgpack');
 
@@ -572,290 +574,8 @@ if (preparedPasswordString) {
     }
 }
 
-// Initialize Prometheus metrics collection
-const collectDefaultMetrics = promClient.collectDefaultMetrics;
-collectDefaultMetrics({});
-
-/**
- * Prometheus metrics definitions for monitoring
- * @const {Object}
- */
-const metrics = {
-    threadStarts: new promClient.Counter({
-        name: 'thread_starts',
-        help: 'Number of started threads'
-    }),
-
-    threadStops: new promClient.Counter({
-        name: 'thread_stops',
-        help: 'Number of stopped threads'
-    }),
-
-    apiCall: new promClient.Counter({
-        name: 'api_call',
-        help: 'Number of API calls',
-        labelNames: ['method', 'statusCode', 'route']
-    }),
-
-    // Labelled by route, not by status: the counter above already splits by status, and a latency
-    // series per status code would multiply the route count for little an operator can act on
-    apiCallDuration: new promClient.Histogram({
-        name: 'api_call_duration_seconds',
-        help: 'Duration of API calls, from receiving the request to sending the response',
-        labelNames: ['method', 'route'],
-        buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60]
-    }),
-
-    imapConnections: new promClient.Gauge({
-        name: 'imap_connections',
-        help: 'Current IMAP connection state',
-        labelNames: ['status']
-    }),
-
-    imapResponses: new promClient.Counter({
-        name: 'imap_responses',
-        help: 'IMAP responses',
-        labelNames: ['response', 'code']
-    }),
-
-    imapBytesSent: new promClient.Counter({
-        name: 'imap_bytes_sent',
-        help: 'IMAP bytes sent'
-    }),
-
-    imapBytesReceived: new promClient.Counter({
-        name: 'imap_bytes_received',
-        help: 'IMAP bytes received'
-    }),
-
-    oauth2TokenRefresh: new promClient.Counter({
-        name: 'oauth2_token_refresh',
-        help: 'OAuth2 access token refresh attempts',
-        labelNames: ['status', 'provider', 'statusCode']
-    }),
-
-    oauth2ApiRequest: new promClient.Counter({
-        name: 'oauth2_api_request',
-        help: 'OAuth2 API requests (MS Graph, Gmail API)',
-        labelNames: ['status', 'provider', 'statusCode']
-    }),
-
-    outlookMissedRecovery: new promClient.Counter({
-        name: 'outlook_missed_recovery',
-        help: 'MS Graph missed-notification recovery passes, by what asked for them and whether they found unannounced messages',
-        labelNames: ['reason', 'outcome']
-    }),
-
-    outlookMissedRecoveredMessages: new promClient.Counter({
-        name: 'outlook_missed_recovered_messages',
-        help: 'New messages announced by MS Graph missed-notification recovery instead of by a change notification',
-        labelNames: ['reason']
-    }),
-
-    outlookSubscriptions: new promClient.Gauge({
-        name: 'outlook_subscriptions',
-        help: 'MS Graph webhook subscription states',
-        labelNames: ['status']
-    }),
-
-    webhooks: new promClient.Counter({
-        name: 'webhooks',
-        help: 'Webhooks sent',
-        labelNames: ['status', 'event']
-    }),
-
-    events: new promClient.Counter({
-        name: 'events',
-        help: 'Events fired',
-        labelNames: ['event']
-    }),
-
-    aiRequests: new promClient.Counter({
-        name: 'ai_requests',
-        help: 'AI summary requests',
-        labelNames: ['model', 'status']
-    }),
-
-    aiTokens: new promClient.Counter({
-        name: 'ai_tokens',
-        help: 'Tokens billed for AI summary requests',
-        labelNames: ['model', 'type']
-    }),
-
-    webhookReq: new promClient.Histogram({
-        name: 'webhook_req',
-        help: 'Duration of webhook requests',
-        buckets: [100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000, 60 * 1000]
-    }),
-
-    queues: new promClient.Gauge({
-        name: 'queue_size',
-        help: 'Queue size',
-        labelNames: ['queue', 'state']
-    }),
-
-    queueFailed: new promClient.Gauge({
-        name: 'queue_failed_jobs',
-        help: 'Failed jobs a queue still retains (deliveries that were given up on)',
-        labelNames: ['queue']
-    }),
-
-    queuesProcessed: new promClient.Counter({
-        name: 'queues_processed',
-        help: 'Processed job count',
-        labelNames: ['queue', 'status']
-    }),
-
-    threads: new promClient.Gauge({
-        name: 'threads',
-        help: 'Worker Threads',
-        labelNames: ['type', 'recent']
-    }),
-
-    unresponsiveWorkers: new promClient.Gauge({
-        name: 'unresponsive_workers',
-        help: 'Number of unresponsive worker threads'
-    }),
-
-    threadEventLoopDelayMax: new promClient.Gauge({
-        name: 'thread_event_loop_delay_max_seconds',
-        help: 'Longest event loop delay of a thread over the last collection window (15s)',
-        labelNames: ['type', 'thread']
-    }),
-
-    threadEventLoopDelayP99: new promClient.Gauge({
-        name: 'thread_event_loop_delay_p99_seconds',
-        help: '99th percentile event loop delay of a thread over the last collection window (15s)',
-        labelNames: ['type', 'thread']
-    }),
-
-    threadHeapUsed: new promClient.Gauge({
-        name: 'thread_heap_used_bytes',
-        help: 'V8 heap in use by a thread, as of the last collection (15s)',
-        labelNames: ['type', 'thread']
-    }),
-
-    threadHeapTotal: new promClient.Gauge({
-        name: 'thread_heap_total_bytes',
-        help: 'V8 heap allocated by a thread, as of the last collection (15s)',
-        labelNames: ['type', 'thread']
-    }),
-
-    licenseDaysRemaining: new promClient.Gauge({
-        name: 'license_days_remaining',
-        help: 'Days until license expires (-1 for lifetime, 0 for no license)'
-    }),
-
-    emailengineConfig: new promClient.Gauge({
-        name: 'emailengine_config',
-        help: 'Configuration values',
-        labelNames: ['version', 'config']
-    }),
-
-    redisVersion: new promClient.Gauge({
-        name: 'redis_version',
-        help: 'Redis version',
-        labelNames: ['version']
-    }),
-
-    redisUptimeInSeconds: new promClient.Gauge({
-        name: 'redis_uptime_in_seconds',
-        help: 'Redis uptime in seconds'
-    }),
-
-    redisPing: new promClient.Gauge({
-        name: 'redis_latency',
-        help: 'Redis latency in nanoseconds'
-    }),
-
-    redisRejectedConnectionsTotal: new promClient.Gauge({
-        name: 'redis_rejected_connections_total',
-        help: 'Number of connections rejected by Redis'
-    }),
-
-    redisConfigMaxclients: new promClient.Gauge({
-        name: 'redis_config_maxclients',
-        help: 'Maximum client number for Redis'
-    }),
-
-    redisConnectedClients: new promClient.Gauge({
-        name: 'redis_connected_clients',
-        help: 'Number of client connections for Redis'
-    }),
-
-    redisSlowlogLength: new promClient.Gauge({
-        name: 'redis_slowlog_length',
-        help: 'Number of of entries in the Redis slow log'
-    }),
-
-    redisCommandsDurationSecondsTotal: new promClient.Gauge({
-        name: 'redis_commands_duration_seconds_total',
-        help: 'How many seconds spend on processing Redis commands'
-    }),
-
-    redisCommandsProcessedTotal: new promClient.Gauge({
-        name: 'redis_commands_processed_total',
-        help: 'How many commands processed by Redis'
-    }),
-
-    redisKeyspaceHitsTotal: new promClient.Gauge({
-        name: 'redis_keyspace_hits_total',
-        help: 'Number of successful lookup of keys in Redis'
-    }),
-
-    redisKeyspaceMissesTotal: new promClient.Gauge({
-        name: 'redis_keyspace_misses_total',
-        help: 'Number of failed lookup of keys in Redis'
-    }),
-
-    redisEvictedKeysTotal: new promClient.Gauge({
-        name: 'redis_evicted_keys_total',
-        help: 'Number of evicted keys due to maxmemory limit in Redis'
-    }),
-
-    redisMemoryUsedBytes: new promClient.Gauge({
-        name: 'redis_memory_used_bytes',
-        help: 'Total number of bytes allocated by Redis using its allocator'
-    }),
-
-    redisMemoryMaxBytes: new promClient.Gauge({
-        name: 'redis_memory_max_bytes',
-        help: 'The value of the Redis maxmemory configuration directive'
-    }),
-
-    redisMemFragmentationRatio: new promClient.Gauge({
-        name: 'redis_mem_fragmentation_ratio',
-        help: 'Ratio between used_memory_rss and used_memory in Redis'
-    }),
-
-    redisKeyCount: new promClient.Gauge({
-        name: 'redis_key_count',
-        help: 'Redis key counts',
-        labelNames: ['db']
-    }),
-
-    redisLastSaveTime: new promClient.Gauge({
-        name: 'redis_last_save_time',
-        help: 'Unix timestamp of the last RDB save time'
-    }),
-
-    redisOpsPerSec: new promClient.Gauge({
-        name: 'redis_instantaneous_ops_per_sec',
-        help: 'Throughput operations per second'
-    }),
-
-    redisCommandRuns: new promClient.Gauge({
-        name: 'redis_command_runs',
-        help: 'Redis command counts',
-        labelNames: ['command']
-    }),
-
-    redisCommandRunsFailed: new promClient.Gauge({
-        name: 'redis_command_runs_fail',
-        help: 'Redis command counts',
-        labelNames: ['command', 'status']
-    })
-};
+// Prometheus metrics (lib/metrics.js)
+const metrics = setupMetrics();
 
 // Inter-thread communication tracking
 let callQueue = new Map(); // Tracks pending cross-thread calls
@@ -877,6 +597,10 @@ let reassignmentPending = false; // Flag to track if reassignment is pending
 const REASSIGNMENT_FAILSAFE_DELAY = 10 * 1000; // How long an exited IMAP worker gets to restart before its accounts move
 let assignRetryCount = 0; // Counter for safety-net retries in assignAccounts
 let assignRetryTimer = null; // The pending safety-net retry, so passes do not stack them
+// Accounts the orphan sweep adopted, announced with accountAdded once a pass actually assigns them
+// (which may be a later retry pass, not the one the sweep started)
+let announceOnAssign = new Set();
+const ORPHAN_SWEEP_INTERVAL = 60 * 60 * 1000;
 
 // Worker management
 let imapInitialWorkersLoaded = false; // Have all initial IMAP workers started?
@@ -1472,6 +1196,28 @@ let spawnWorker = async (type, opts, slot) => {
             });
         });
 
+        // The worker is up and accepts work: an IMAP worker becomes available for accounts, and
+        // the spawn resolves. The two IMAP checks are apart on purpose: the worker joins the set
+        // before the spawn resolves, and the reassignment runs after it
+        const onWorkerReady = () => {
+            if (type === 'imap') {
+                // IMAP worker is ready to accept accounts
+                availableIMAPWorkers.add(worker);
+            }
+
+            isOnline = true;
+
+            // Initialize heartbeat tracking
+            workerHeartbeats.set(worker, Date.now());
+            workerHealthStatus.set(worker, 'healthy');
+
+            resolve(worker.threadId);
+
+            if (type === 'imap') {
+                onImapWorkerReady(worker);
+            }
+        };
+
         // Handle messages from worker
         worker.on('message', message => {
             // Update message count
@@ -1483,333 +1229,290 @@ let spawnWorker = async (type, opts, slot) => {
                 return;
             }
 
-            // Handle heartbeat from worker
-            if (message.cmd === 'heartbeat') {
-                handleWorkerHeartbeat(worker);
-                return;
-            }
-
-            // Handle response to a call
-            if (message.cmd === 'resp' && message.mid && callQueue.has(message.mid)) {
-                let { resolve, reject, timer } = callQueue.get(message.mid);
-                clearTimeout(timer);
-                callQueue.delete(message.mid);
-                if (message.error) {
-                    return reject(unpackRpcError(message));
-                } else {
-                    return resolve(message.response);
-                }
-            }
-
-            // Handle call from worker
-            if (message.cmd === 'call' && message.mid) {
-                return onCommand(worker, message.message)
-                    .then(response => {
-                        let transferList;
-                        // Handle transferable objects
-                        if (response && typeof response === 'object' && response._transfer === true) {
-                            if (typeof response._response === 'object' && response._response && response._response.buffer) {
-                                transferList = [response._response.buffer];
-                            }
-                            response = response._response;
-                        }
-
-                        let callPayload = {
-                            cmd: 'resp',
-                            mid: message.mid,
-                            response
-                        };
-
-                        try {
-                            postMessage(worker, callPayload, null, transferList);
-                        } catch (err) {
-                            // Log buffer info instead of full buffer
-                            if (Buffer.isBuffer(callPayload.response)) {
-                                callPayload.response = `Buffer <${callPayload.response.length}B>`;
-                            }
-
-                            logger.error({ msg: 'Unable to send response to worker', worker: worker.threadId, callPayload, err });
-                        }
-                    })
-                    .catch(err => {
-                        let callPayload = Object.assign({ cmd: 'resp', mid: message.mid }, packRpcError(err));
-
-                        try {
-                            postMessage(worker, callPayload);
-                        } catch (err) {
-                            logger.error({ msg: 'Unable to send error response to worker', worker: worker.threadId, callPayload, err });
-                        }
-                    });
-            }
-
-            // Handle metrics messages
             switch (message.cmd) {
-                case 'metrics': {
-                    let statUpdateKey = false;
-                    let accountUpdateKey = false;
-
-                    let { account } = message.meta || {};
-
-                    // Determine which metrics to update
-                    switch (message.key) {
-                        case 'webhooks': {
-                            let { status } = message.args[0] || {};
-                            statUpdateKey = `${message.key}:${status}`;
-                            break;
-                        }
-
-                        case 'webhookReq': {
-                            break;
-                        }
-
-                        case 'events': {
-                            let { event } = message.args[0] || {};
-                            if (account) {
-                                accountUpdateKey = `${message.key}:${event}`;
-                            }
-
-                            // Track specific events
-                            switch (event) {
-                                case MESSAGE_NEW_NOTIFY:
-                                case MESSAGE_DELETED_NOTIFY:
-                                case CONNECT_ERROR_NOTIFY:
-                                    statUpdateKey = `${message.key}:${event}`;
-                                    break;
-                            }
-                            break;
-                        }
-
-                        case 'apiCall': {
-                            let { statusCode, method, route } = message.args[0] || {};
-                            let success = statusCode >= 200 && statusCode < 300;
-                            statUpdateKey = `${message.key}:${success ? 'success' : 'fail'}`;
-                            if (typeof message.duration === 'number' && Number.isFinite(message.duration)) {
-                                try {
-                                    metrics.apiCallDuration.observe({ method, route }, message.duration);
-                                } catch (err) {
-                                    logger.error({ msg: 'Unable to apply worker metric', type, key: 'apiCallDuration', err });
-                                }
-                            }
-                            break;
-                        }
-
-                        case 'queuesProcessed': {
-                            let { queue, status } = message.args[0] || {};
-                            if (['submit'].includes(queue)) {
-                                statUpdateKey = `${queue}:${status === 'completed' ? 'success' : 'fail'}`;
-                            }
-                            break;
-                        }
-                    }
-
-                    // Update Redis counters for dashboard stats
-                    if (statUpdateKey) {
-                        let now = new Date();
-
-                        // Create daily bucket
-                        let dateStr = `${now
-                            .toISOString()
-                            .substr(0, 10)
-                            .replace(/[^0-9]+/g, '')}`;
-
-                        // Create minute bucket
-                        let timeStr = `${now
-                            .toISOString()
-                            .substr(0, 16)
-                            .replace(/[^0-9]+/g, '')}`;
-
-                        let hkey = `${REDIS_PREFIX}stats:${statUpdateKey}:${dateStr}`;
-
-                        let update = redis
-                            .multi()
-                            .hincrby(hkey, timeStr, 1)
-                            .sadd(`${REDIS_PREFIX}stats:keys`, statUpdateKey)
-                            .expire(hkey, (MAX_DAYS_STATS + 1) * 24 * 3600); // Keep for configured days + 1
-
-                        if (account && accountUpdateKey) {
-                            // Update account-specific counter
-                            let accountKey = accountDataKey(account);
-                            update = update.hIncrbyExists(accountKey, `stats:count:${accountUpdateKey}`, 1);
-                        }
-
-                        update.exec().catch(() => false);
-                    } else if (account && accountUpdateKey) {
-                        // Update only account-specific counter
-                        let accountKey = accountDataKey(account);
-                        redis.hIncrbyExists(accountKey, `stats:count:${accountUpdateKey}`, 1).catch(() => false);
-                    }
-
-                    // Update Prometheus metrics. prom-client throws synchronously on an unknown
-                    // label, a negative counter increment or a non-finite value, and this runs in
-                    // an event handler on the main thread, where a throw would take every worker
-                    // down with it.
-                    if (message.key && metrics[message.key] && typeof metrics[message.key][message.method] === 'function') {
-                        try {
-                            metrics[message.key][message.method](...message.args);
-                        } catch (err) {
-                            logger.error({ msg: 'Unable to apply worker metric', type, key: message.key, method: message.method, err });
-                        }
-                    }
-
+                // Handle heartbeat from worker
+                case 'heartbeat':
+                    handleWorkerHeartbeat(worker);
                     return;
-                }
+
+                // Handle response to a call; one nobody waits for anymore (timed out) is dropped
+                case 'resp':
+                    if (message.mid && callQueue.has(message.mid)) {
+                        handleRpcResponse(message);
+                    }
+                    return;
+
+                // Handle call from worker
+                case 'call':
+                    if (message.mid) {
+                        handleRpcCall(worker, message);
+                    }
+                    return;
+
+                case 'metrics':
+                    recordWorkerMetrics(type, message);
+                    return;
 
                 case 'settings':
-                    // Reload the HTTP proxy agent in the main thread when proxy settings change
-                    maybeReloadHttpProxyAgent(message.data);
-
-                    // Forward settings changes to all IMAP workers
-                    availableIMAPWorkers.forEach(worker => {
-                        try {
-                            postMessage(worker, message);
-                        } catch (err) {
-                            logger.error({
-                                msg: 'Unable to forward settings to worker',
-                                worker: worker.threadId,
-                                settingsKeys: Object.keys(message.data || {}),
-                                err
-                            });
-                        }
-                    });
-
-                    // Forward settings changes to every other worker type (the IMAP workers were
-                    // handled above); each reloads its HTTP proxy agent from the 'settings' message
-                    for (let [type, typeWorkers] of workers) {
-                        if (type === 'imap') {
-                            continue;
-                        }
-                        typeWorkers.forEach(worker => {
-                            try {
-                                postMessage(worker, message);
-                            } catch (err) {
-                                logger.error({ msg: 'Unable to forward settings to worker', type, worker: worker.threadId, err });
-                            }
-                        });
-                    }
+                    forwardSettings(message);
                     return;
 
                 case 'change':
-                    // Handle state changes
-                    switch (message.type) {
-                        case 'smtpServerState':
-                        case 'imapProxyServerState': {
-                            let type = message.type.replace(/ServerState$/, '');
-                            reportServerState(type, message.key, message.payload);
-                            break;
-                        }
-                        default:
-                            // Forward all other state changes to API workers
-                            for (let worker of workers.get('api') || []) {
-                                try {
-                                    postMessage(worker, message, true);
-                                } catch (err) {
-                                    logger.error({ msg: 'Unable to forward state change to worker', worker: worker.threadId, callPayload: message, err });
-                                }
-                            }
-                    }
-                    break;
-            }
+                    forwardStateChange(message);
+                    return;
 
-            // Handle worker type specific messages
-            switch (type) {
-                case 'imap':
-                    if (message.cmd === 'ready') {
-                        // IMAP worker is ready to accept accounts
-                        availableIMAPWorkers.add(worker);
-                        isOnline = true;
-
-                        // Initialize heartbeat tracking
-                        workerHeartbeats.set(worker, Date.now());
-                        workerHealthStatus.set(worker, 'healthy');
-
-                        resolve(worker.threadId);
-
-                        logger.info({
-                            msg: 'IMAP worker ready',
-                            threadId: worker.threadId,
-                            currentWorkers: availableIMAPWorkers.size,
-                            expectedWorkers: config.workers.imap,
-                            unassignedCount: unassigned ? unassigned.size : 0,
-                            assignedCount: assigned.size,
-                            imapInitialWorkersLoaded,
-                            reassignmentPending
-                        });
-
-                        if (imapInitialWorkersLoaded && reassignmentPending) {
-                            // Check if we now have the expected number of workers
-                            // This handles the case where a worker crashed and restarted
-                            if (availableIMAPWorkers.size === config.workers.imap) {
-                                // All workers are back - clear timer and reassign
-                                if (reassignmentTimer) {
-                                    clearTimeout(reassignmentTimer);
-                                    reassignmentTimer = null;
-                                }
-                                reassignmentPending = false;
-
-                                if (unassigned && unassigned.size > 0) {
-                                    logger.info({
-                                        msg: 'All expected workers ready, reassigning unassigned accounts',
-                                        workers: availableIMAPWorkers.size,
-                                        unassigned: unassigned.size
-                                    });
-                                    assignAccounts().catch(err => logger.error({ msg: 'Unable to assign accounts', err }));
-                                } else {
-                                    logger.warn({
-                                        msg: 'All workers ready but no unassigned accounts found',
-                                        workers: availableIMAPWorkers.size
-                                    });
-                                }
-                            } else if (unassigned && unassigned.size > 0) {
-                                // Still waiting for more workers to restart
-                                logger.info({
-                                    msg: 'Worker ready, waiting for all workers before reassignment',
-                                    currentWorkers: availableIMAPWorkers.size,
-                                    expectedWorkers: config.workers.imap,
-                                    unassignedAccounts: unassigned.size
-                                });
-                                // The failsafe found no worker at all and stopped; give the rest
-                                // of the fleet the same time to come back from here
-                                if (!reassignmentTimer) {
-                                    armReassignmentFailsafe();
-                                }
-                            }
-                        } else if (imapInitialWorkersLoaded) {
-                            // The failsafe timer already gave this worker's accounts to the
-                            // survivors (or it is an extra worker), so nothing is pending for it
-                            rebalanceOnto(worker).catch(err => logger.error({ msg: 'Unable to rebalance accounts', err }));
-                        }
-                    }
-                    break;
-
-                case 'api':
-                    if (message.cmd === 'ready') {
-                        // API worker is ready
-                        isOnline = true;
-
-                        // Initialize heartbeat tracking
-                        workerHeartbeats.set(worker, Date.now());
-                        workerHealthStatus.set(worker, 'healthy');
-
-                        resolve(worker.threadId);
-                    }
-                    break;
-
-                default:
-                    // For all other worker types
-                    if (message.cmd === 'ready') {
-                        isOnline = true;
-
-                        // Initialize heartbeat tracking
-                        workerHeartbeats.set(worker, Date.now());
-                        workerHealthStatus.set(worker, 'healthy');
-
-                        resolve(worker.threadId);
-                    }
-                    break;
+                case 'ready':
+                    onWorkerReady();
+                    return;
             }
         });
     });
 };
+
+/**
+ * Settles the pending call() a worker answered
+ * @param {Object} message - `resp` message carrying the call's `mid`
+ */
+function handleRpcResponse(message) {
+    let { resolve, reject, timer } = callQueue.get(message.mid);
+    clearTimeout(timer);
+    callQueue.delete(message.mid);
+    if (message.error) {
+        reject(unpackRpcError(message));
+    } else {
+        resolve(message.response);
+    }
+}
+
+/**
+ * Runs a command a worker asked the main thread for and posts the answer back
+ * @param {Worker} worker - The calling worker
+ * @param {Object} message - `call` message carrying the command and its `mid`
+ */
+function handleRpcCall(worker, message) {
+    onCommand(worker, message.message)
+        .then(response => {
+            let transferList;
+            // Handle transferable objects
+            if (response && typeof response === 'object' && response._transfer === true) {
+                if (typeof response._response === 'object' && response._response && response._response.buffer) {
+                    transferList = [response._response.buffer];
+                }
+                response = response._response;
+            }
+
+            let callPayload = {
+                cmd: 'resp',
+                mid: message.mid,
+                response
+            };
+
+            try {
+                postMessage(worker, callPayload, null, transferList);
+            } catch (err) {
+                // Log buffer info instead of full buffer
+                if (Buffer.isBuffer(callPayload.response)) {
+                    callPayload.response = `Buffer <${callPayload.response.length}B>`;
+                }
+
+                logger.error({ msg: 'Unable to send response to worker', worker: worker.threadId, callPayload, err });
+            }
+        })
+        .catch(err => {
+            let callPayload = Object.assign({ cmd: 'resp', mid: message.mid }, packRpcError(err));
+
+            try {
+                postMessage(worker, callPayload);
+            } catch (err) {
+                logger.error({ msg: 'Unable to send error response to worker', worker: worker.threadId, callPayload, err });
+            }
+        });
+}
+
+/**
+ * Applies a worker's `metrics` message: the dashboard counters in Redis and the Prometheus metric
+ * @param {String} type - Type of the reporting worker
+ * @param {Object} message - `metrics` message
+ */
+function recordWorkerMetrics(type, message) {
+    let { account, statUpdateKey, accountUpdateKey } = resolveMetricKeys(message);
+
+    if (message.key === 'apiCall' && typeof message.duration === 'number' && Number.isFinite(message.duration)) {
+        let { method, route } = message.args[0] || {};
+        try {
+            metrics.apiCallDuration.observe({ method, route }, message.duration);
+        } catch (err) {
+            logger.error({ msg: 'Unable to apply worker metric', type, key: 'apiCallDuration', err });
+        }
+    }
+
+    // Update Redis counters for dashboard stats
+    if (statUpdateKey) {
+        let { dateStr, timeStr } = statBuckets(new Date());
+
+        let hkey = `${REDIS_PREFIX}stats:${statUpdateKey}:${dateStr}`;
+
+        let update = redis
+            .multi()
+            .hincrby(hkey, timeStr, 1)
+            .sadd(`${REDIS_PREFIX}stats:keys`, statUpdateKey)
+            .expire(hkey, (MAX_DAYS_STATS + 1) * 24 * 3600); // Keep for configured days + 1
+
+        if (account && accountUpdateKey) {
+            // Update account-specific counter
+            let accountKey = accountDataKey(account);
+            update = update.hIncrbyExists(accountKey, `stats:count:${accountUpdateKey}`, 1);
+        }
+
+        update.exec().catch(() => false);
+    } else if (account && accountUpdateKey) {
+        // Update only account-specific counter
+        let accountKey = accountDataKey(account);
+        redis.hIncrbyExists(accountKey, `stats:count:${accountUpdateKey}`, 1).catch(() => false);
+    }
+
+    // Update Prometheus metrics. The Prometheus client throws synchronously on an unknown
+    // label, a negative counter increment or a non-finite value, and this runs in
+    // an event handler on the main thread, where a throw would take every worker
+    // down with it.
+    if (message.key && metrics[message.key] && typeof metrics[message.key][message.method] === 'function') {
+        try {
+            metrics[message.key][message.method](...message.args);
+        } catch (err) {
+            logger.error({ msg: 'Unable to apply worker metric', type, key: message.key, method: message.method, err });
+        }
+    }
+}
+
+/**
+ * Applies a settings change in the main thread and forwards it to every worker
+ * @param {Object} message - `settings` message
+ */
+function forwardSettings(message) {
+    // Reload the HTTP proxy agent in the main thread when proxy settings change
+    maybeReloadHttpProxyAgent(message.data);
+
+    // Forward settings changes to all IMAP workers
+    availableIMAPWorkers.forEach(worker => {
+        try {
+            postMessage(worker, message);
+        } catch (err) {
+            logger.error({
+                msg: 'Unable to forward settings to worker',
+                worker: worker.threadId,
+                settingsKeys: Object.keys(message.data || {}),
+                err
+            });
+        }
+    });
+
+    // Forward settings changes to every other worker type (the IMAP workers were
+    // handled above); each reloads its HTTP proxy agent from the 'settings' message
+    for (let [type, typeWorkers] of workers) {
+        if (type === 'imap') {
+            continue;
+        }
+        typeWorkers.forEach(worker => {
+            try {
+                postMessage(worker, message);
+            } catch (err) {
+                logger.error({ msg: 'Unable to forward settings to worker', type, worker: worker.threadId, err });
+            }
+        });
+    }
+}
+
+/**
+ * Handles a state change: a listener's own state is recorded here, everything else goes to the
+ * API workers
+ * @param {Object} message - `change` message
+ */
+function forwardStateChange(message) {
+    switch (message.type) {
+        case 'smtpServerState':
+        case 'imapProxyServerState': {
+            let serverType = message.type.replace(/ServerState$/, '');
+            reportServerState(serverType, message.key, message.payload);
+            break;
+        }
+        default:
+            // Forward all other state changes to API workers
+            for (let worker of workers.get('api') || []) {
+                try {
+                    postMessage(worker, message, true);
+                } catch (err) {
+                    logger.error({ msg: 'Unable to forward state change to worker', worker: worker.threadId, callPayload: message, err });
+                }
+            }
+    }
+}
+
+/**
+ * An IMAP worker came up: once the initial set has loaded, hand it the accounts waiting for a
+ * worker, or rebalance onto it
+ * @param {Worker} worker - The IMAP worker that is now available
+ */
+function onImapWorkerReady(worker) {
+    logger.info({
+        msg: 'IMAP worker ready',
+        threadId: worker.threadId,
+        currentWorkers: availableIMAPWorkers.size,
+        expectedWorkers: config.workers.imap,
+        unassignedCount: unassigned ? unassigned.size : 0,
+        assignedCount: assigned.size,
+        imapInitialWorkersLoaded,
+        reassignmentPending
+    });
+
+    if (!imapInitialWorkersLoaded) {
+        return;
+    }
+
+    if (!reassignmentPending) {
+        // The failsafe timer already gave this worker's accounts to the
+        // survivors (or it is an extra worker), so nothing is pending for it
+        rebalanceOnto(worker).catch(err => logger.error({ msg: 'Unable to rebalance accounts', err }));
+        return;
+    }
+
+    // Check if we now have the expected number of workers
+    // This handles the case where a worker crashed and restarted
+    if (availableIMAPWorkers.size === config.workers.imap) {
+        // All workers are back - clear timer and reassign
+        if (reassignmentTimer) {
+            clearTimeout(reassignmentTimer);
+            reassignmentTimer = null;
+        }
+        reassignmentPending = false;
+
+        if (unassigned && unassigned.size > 0) {
+            logger.info({
+                msg: 'All expected workers ready, reassigning unassigned accounts',
+                workers: availableIMAPWorkers.size,
+                unassigned: unassigned.size
+            });
+            assignAccounts().catch(err => logger.error({ msg: 'Unable to assign accounts', err }));
+        } else {
+            logger.warn({
+                msg: 'All workers ready but no unassigned accounts found',
+                workers: availableIMAPWorkers.size
+            });
+        }
+    } else if (unassigned && unassigned.size > 0) {
+        // Still waiting for more workers to restart
+        logger.info({
+            msg: 'Worker ready, waiting for all workers before reassignment',
+            currentWorkers: availableIMAPWorkers.size,
+            expectedWorkers: config.workers.imap,
+            unassignedAccounts: unassigned.size
+        });
+        // The failsafe found no worker at all and stopped; give the rest
+        // of the fleet the same time to come back from here
+        if (!reassignmentTimer) {
+            armReassignmentFailsafe();
+        }
+    }
+}
 
 /**
  * Call a command on a worker thread and wait for response
@@ -2104,12 +1807,17 @@ async function assignAccounts() {
 
                 logger.error({ msg: 'Failed to assign account to worker', account, threadId: worker.threadId, err });
 
-                if (await shouldRequeueFailedAssignment(err, account, isRegisteredAccount)) {
+                if (await shouldRequeueFailedAssignment(account, isRegisteredAccount)) {
                     failedAccounts.push(account);
                 } else {
+                    announceOnAssign.delete(account);
                     logger.info({ msg: 'Dropped assignment of an account that no longer exists', account });
                 }
                 continue;
+            }
+
+            if (announceOnAssign.delete(account)) {
+                sendWebhook(account, ACCOUNT_ADDED_NOTIFY, { account }).catch(err => logger.error({ msg: 'Account added webhook failed', account, err }));
             }
 
             // Add delay between assignments to avoid overwhelming the system
@@ -2158,6 +1866,47 @@ async function assignAccounts() {
             assignRetryCount = 0;
         }
     }
+}
+
+/**
+ * Safety net for registered accounts the assignment state lost track of. assignAccounts() reads the
+ * registered set only on its first run, so an account whose `new` dispatch never reached the main
+ * thread (Account.notifyWorker() logs that failure rather than failing the saved create) stayed
+ * unsynced until a restart. Queues such accounts and announces each with accountAdded once a pass
+ * assigns it, since the lost dispatch was what would have announced it
+ * @returns {Promise<void>}
+ */
+async function sweepOrphanedAccounts() {
+    if (isClosing || assigning || !unassigned || !availableIMAPWorkers.size) {
+        return;
+    }
+
+    // SSCAN in batches rather than SMEMBERS, so a large account set does not stall the main thread
+    let candidates = new Set();
+    let cursor = '0';
+    do {
+        let [nextCursor, batch] = await redis.sscan(`${REDIS_PREFIX}ia:accounts`, cursor, 'COUNT', 1000);
+        cursor = nextCursor;
+        for (let account of findUntrackedAccounts(batch, { assigned, unassigned })) {
+            candidates.add(account);
+        }
+    } while (cursor !== '0' && !isClosing);
+
+    // Settled after the scan: a create has queued the account and an assignment pass may have
+    // picked some up. An account deleted during the scan is dropped by the pass's membership check
+    // after its assign fails, before anything is announced
+    let orphaned = findUntrackedAccounts(candidates, { assigned, unassigned });
+    if (!orphaned.length || isClosing) {
+        return;
+    }
+
+    logger.warn({ msg: 'Queueing registered accounts that were never assigned', count: orphaned.length, accounts: orphaned.slice(0, 20) });
+    for (let account of orphaned) {
+        unassigned.add(account);
+        announceOnAssign.add(account);
+    }
+    // When a pass is already running this returns at once; that pass's retry picks the accounts up
+    await assignAccounts();
 }
 
 // License checking state
@@ -2293,21 +2042,7 @@ let licenseCheckHandler = async opts => {
         let subscriptionCheckTimeout = opts.subscriptionCheckTimeout || checkInterval({ subexp, subsusp });
 
         // Check if we need to validate the license
-        let checkKv = true;
-        // an unreadable record means checking again, which also rewrites it
-        let validatedVersion = kv && typeof kv === 'string' ? Buffer.from(kv, 'hex').toString() : null;
-        if (parseVersion(validatedVersion) && compareVersions(packageData.version, validatedVersion) <= 0) {
-            checkKv = false;
-        }
-
-        if (ks && typeof ks === 'string') {
-            let ksDate = new Date(parseInt(ks, 16));
-            if (ksDate < now) {
-                checkKv = true;
-            }
-        } else {
-            checkKv = true;
-        }
+        let checkKv = needsVersionRecheck({ kv, ks, version: packageData.version, now });
 
         // Clean up for lifetime licenses
         if (licenseInfo.details && licenseInfo.details.lt) {
@@ -2315,12 +2050,10 @@ let licenseCheckHandler = async opts => {
             subscriptionDeadline = null;
         }
 
-        // A suspended license is still registered and still checked, which is how it resumes
-        let subscriptionLicense = (licenseInfo.active || !!licenseInfo.suspension) && isSubscriptionLicense(licenseInfo.details);
-
-        // A stored deadline that has passed suspends on its own, whether or not the license server
+        // A suspended license is still registered and still checked, which is how it resumes. A
+        // stored deadline that has passed suspends on its own, whether or not the license server
         // can be reached to say so; its next answer decides what happens after that
-        let localSuspension = subscriptionLicense && !licenseInfo.suspension ? expiredSuspension(subexp, subsusp, now) : null;
+        let { subscriptionLicense, localSuspension } = subscriptionCheckState(licenseInfo, { subexp, subsusp, now });
         if (localSuspension) {
             await redis.hset(`${REDIS_PREFIX}settings`, 'subsusp', JSON.stringify(localSuspension));
             logger.warn({
@@ -2395,7 +2128,8 @@ let licenseCheckHandler = async opts => {
         }
 
         // Handle no active license - suspend workers
-        if (!licenseInfo.active && !suspendedWorkerTypes.size) {
+        let workerChange = workerSuspensionChange(licenseInfo.active, suspendedWorkerTypes.size);
+        if (workerChange === 'suspend') {
             // Said in the present tense, because that is what the loop below does. The line used to
             // promise a 15 minute grace period that nothing anywhere implements, so an operator
             // reading it waited for a window that had already closed.
@@ -2410,7 +2144,7 @@ let licenseCheckHandler = async opts => {
                     }
                 }
             }
-        } else if (licenseInfo.active && suspendedWorkerTypes.size) {
+        } else if (workerChange === 'resume') {
             // Re-enable workers after license activated
             for (let type of suspendedWorkerTypes) {
                 suspendedWorkerTypes.delete(type);
@@ -2620,39 +2354,29 @@ function checkRedisPing() {
  * @returns {Promise<void>}
  */
 async function updateQueueCounters() {
-    // Update EmailEngine configuration metrics
+    setConfigMetrics();
+    await setThreadMetrics();
+    await setQueueMetrics();
+    await setRedisMetrics();
+}
+
+// EmailEngine configuration and license metrics
+function setConfigMetrics() {
     metrics.emailengineConfig.set({ version: 'v' + packageData.version }, 1);
     metrics.emailengineConfig.set({ config: 'uvThreadpoolSize' }, Number(process.env.UV_THREADPOOL_SIZE));
     metrics.emailengineConfig.set({ config: 'workersImap' }, config.workers.imap);
     metrics.emailengineConfig.set({ config: 'workersWebhooks' }, config.workers.webhooks);
     metrics.emailengineConfig.set({ config: 'workersSubmission' }, config.workers.submit);
 
-    // Update license days remaining metric
-    if (licenseInfo.active && licenseInfo.details) {
-        if (licenseInfo.details.lt) {
-            // Lifetime license
-            metrics.licenseDaysRemaining.set(-1);
-        } else if (licenseInfo.details.expires) {
-            // Time-limited license
-            let expiresAt = new Date(licenseInfo.details.expires).getTime();
-            let daysRemaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
-            metrics.licenseDaysRemaining.set(daysRemaining);
-        } else {
-            // Subscription license (no fixed expiry)
-            metrics.licenseDaysRemaining.set(-1);
-        }
-    } else {
-        // No active license
-        metrics.licenseDaysRemaining.set(0);
-    }
+    metrics.licenseDaysRemaining.set(licenseDaysRemaining(licenseInfo, Date.now()));
+}
 
-    // Update thread metrics
+// Worker thread metrics
+async function setThreadMetrics() {
     let threadsInfo = await getThreadsInfo();
 
     let now = Date.now();
 
-    let threadCounts = new Map();
-    let unresponsiveCount = 0;
     // a replaced thread leaves with its thread id, so the series are rebuilt on every update
     metrics.threadEventLoopDelayMax.reset();
     metrics.threadEventLoopDelayP99.reset();
@@ -2666,27 +2390,8 @@ async function updateQueueCounters() {
         metrics.threadHeapUsed.set(labels, used);
         metrics.threadHeapTotal.set(labels, total);
     }
-    for (let workerThreadInfo of threadsInfo || []) {
-        let key = workerThreadInfo.type;
-        let metricKey = `${key}_total`;
 
-        // Check if thread is recent (started within METRIC_RECENT)
-        let recent = now - workerThreadInfo.online < METRIC_RECENT;
-        if (recent) {
-            metricKey = `${key}_recent`;
-        }
-
-        if (!threadCounts.has(metricKey)) {
-            threadCounts.set(metricKey, 1);
-        } else {
-            threadCounts.set(metricKey, threadCounts.get(metricKey) + 1);
-        }
-
-        // Count unresponsive workers
-        if (workerThreadInfo.resourceUsageError && workerThreadInfo.resourceUsageError.unresponsive) {
-            unresponsiveCount++;
-        }
-    }
+    let { threadCounts, unresponsiveCount } = countThreads(threadsInfo, now, METRIC_RECENT);
 
     // Set thread count metrics
     for (let [key, value] of threadCounts.entries()) {
@@ -2696,15 +2401,17 @@ async function updateQueueCounters() {
 
     // Set unresponsive workers metric
     metrics.unresponsiveWorkers.set(unresponsiveCount);
+}
 
-    // Update queue metrics through BullMQ's own API (lib/queue-stats.js). Counting raw
-    // llen/zcard against BullMQ's private key layout broke silently in the 5.x -> 6.x bump: the
-    // `:paused` list no longer exists (a paused queue holds its jobs in `wait`), and a leftover
-    // `0:` wait-list marker from a 5.x install counts as a phantom waiting job. The `paused`
-    // gauge is kept at the 0 the getter reports so existing dashboards keep their series.
-    //
-    // A queue whose count fails is skipped rather than ending the update: returning here used to
-    // leave every Redis gauge below it stale for as long as that one count kept failing.
+// Queue metrics, through BullMQ's own API (lib/queue-stats.js). Counting raw llen/zcard against
+// BullMQ's private key layout broke silently in the 5.x -> 6.x bump: the `:paused` list no longer
+// exists (a paused queue holds its jobs in `wait`), and a leftover `0:` wait-list marker from a
+// 5.x install counts as a phantom waiting job. The `paused` gauge is kept at the 0 the getter
+// reports so existing dashboards keep their series.
+//
+// A queue whose count fails is skipped rather than ending the update: returning here used to
+// leave every Redis gauge below it stale for as long as that one count kept failing.
+async function setQueueMetrics() {
     const counted = [
         ['notify', notifyQueue],
         ['submit', submitQueue],
@@ -2724,8 +2431,10 @@ async function updateQueueCounters() {
         metrics.queues.set({ queue: `${queue}`, state: `waiting` }, stats.waiting);
         metrics.queueFailed.set({ queue: `${queue}` }, stats.failed);
     });
+}
 
-    // Update Redis metrics
+// Redis metrics
+async function setRedisMetrics() {
     try {
         let redisInfo = await getRedisStats(redis);
 
@@ -2877,16 +2586,7 @@ async function commandMetrics() {
 
 async function commandStructuredMetrics() {
     // Return structured metrics for API
-    let connections = {};
-
-    for (let key of Object.keys(metrics.imapConnections.hashMap)) {
-        if (key.indexOf('status:') === 0) {
-            let metric = metrics.imapConnections.hashMap[key];
-            connections[metric.labels.status] = metric.value;
-        }
-    }
-
-    return { connections, redisPing: await getRedisPing() };
+    return { connections: await connectionCounts(metrics.imapConnections), redisPing: await getRedisPing() };
 }
 
 async function commandImapWorkerCount() {
@@ -3165,6 +2865,20 @@ async function commandNewAccount(worker, message) {
     // before that used to throw here and fail the request with a 500. Skipping the add is
     // safe rather than merely quiet: the account is already in `ia:accounts` by the time
     // this message is sent, so the first load picks it up.
+    //
+    // This dispatch announces the account itself, so the orphan sweep must not announce it again
+    announceOnAssign.delete(message.account);
+    if (assigned.has(message.account)) {
+        // Still assigned: a `delete` for an earlier account with the same id never arrived, or the
+        // orphan sweep adopted this one first. Queueing it again would let the next pass assign it to
+        // a second worker, two connections for one account. The worker holding it reconnects instead,
+        // which reloads the stored record
+        commandForwardToAccountWorker(worker, { cmd: 'reconnect', account: message.account });
+        sendWebhook(message.account, ACCOUNT_ADDED_NOTIFY, { account: message.account }).catch(err =>
+            logger.error({ msg: 'Account added webhook failed', account: message.account, err })
+        );
+        return;
+    }
     if (unassigned) {
         unassigned.add(message.account);
     }
@@ -3180,6 +2894,7 @@ async function commandDeleteAccount(worker, message) {
     // answered with a 500 for a deletion that had in fact succeeded: the account was
     // already gone from Redis by the time this message was sent.
     let assignedWorker = forgetAccount({ workerAssigned, assigned, unassigned }, message.account);
+    announceOnAssign.delete(message.account);
     if (assignedWorker) {
         // Notify worker to clean up
         call(assignedWorker, message)
@@ -4176,6 +3891,10 @@ startApplication()
         setInterval(() => {
             collectMetrics().catch(err => logger.error({ msg: 'Metrics collection failed', err }));
         }, 1000).unref();
+
+        setInterval(() => {
+            sweepOrphanedAccounts().catch(err => logger.error({ msg: 'Orphaned account sweep failed', err }));
+        }, ORPHAN_SWEEP_INTERVAL).unref();
 
         // Schedule periodic checks. A monthly-plan license, or one that is not in good standing, is
         // checked right away (unless an hour has not passed since the last check, so a restart

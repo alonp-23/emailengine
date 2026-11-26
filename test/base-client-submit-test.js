@@ -30,21 +30,25 @@ smtpPool.getMailTransport = () => ({
 });
 
 const { SmtpConfigBuilder } = require('../lib/email-client/message-builder');
-const { BaseClient, buildReferences } = require('../lib/email-client/base-client');
+const { BaseClient, buildReferences, needsReferenceFlagUpdate } = require('../lib/email-client/base-client');
 const { isFailedDelivery } = require('../lib/email-client/new-message-steps');
 const { Account } = require('../lib/account');
 const { EMAIL_SENT_NOTIFY, EMAIL_DELIVERY_ERROR_NOTIFY } = require('../lib/consts');
+const { submitPenaltyKey, SUBMIT_PENALTY_MS } = require('../lib/submit-penalty');
 const { noopLogger } = require('./helpers/auth-failure');
 
 require('./helpers/redis-teardown')();
 
-test.mock.method(SmtpConfigBuilder.prototype, 'loadGateway', async () => ({ gatewayData: null, gatewayObject: null }));
+// a test that sends through a gateway sets this
+let gatewayStub = null;
+test.mock.method(SmtpConfigBuilder.prototype, 'loadGateway', async () => gatewayStub || { gatewayData: null, gatewayObject: null });
 test.mock.method(SmtpConfigBuilder.prototype, 'buildConnectionConfig', async () => ({}));
 test.mock.method(SmtpConfigBuilder.prototype, 'resolveAuthServer', async () => null);
 test.mock.method(SmtpConfigBuilder.prototype, 'buildSmtpSettings', async () => ({ host: 'smtp.example.com', port: 587 }));
 
 function createSubmitClient({ failingNotify = false, failingRedis = false } = {}) {
     const notifications = [];
+    const penalties = [];
     const ctx = Object.assign(Object.create(BaseClient.prototype), {
         account: 'test-account',
         logger: noopLogger,
@@ -56,7 +60,11 @@ function createSubmitClient({ failingNotify = false, failingRedis = false } = {}
                     throw new Error('READONLY You can not write against a read only replica');
                 }
             },
-            hset: async () => 1
+            hset: async () => 1,
+            set: async (...args) => {
+                penalties.push(args);
+                return 'OK';
+            }
         },
         getAccountKey: () => 'iad:test-account',
         uploadToSentFolder: async () => false,
@@ -72,7 +80,7 @@ function createSubmitClient({ failingNotify = false, failingRedis = false } = {}
             }
         }
     });
-    return { ctx, notifications };
+    return { ctx, notifications, penalties };
 }
 
 const submission = () => ({
@@ -141,6 +149,115 @@ test('BaseClient.submitMessage() after the server accepted the message', async t
             assert.equal(Boolean(payloads[0].job.nextAttempt), !permanent, error.message);
             assert.equal(job.nextAttempt, '2026-11-07T12:00:00.000Z', "the caller's job data is not changed");
         }
+    });
+});
+
+test('BaseClient.submitMessage() around the send', async t => {
+    t.beforeEach(() => {
+        sent.length = 0;
+        sendError = null;
+        gatewayStub = null;
+    });
+
+    await t.test('a missing job resolves false without sending', async () => {
+        const { ctx, notifications } = createSubmitClient();
+        ctx.submitQueue = { getJob: async () => null };
+
+        assert.equal(await ctx.submitMessage(submission()), false);
+        assert.equal(sent.length, 0);
+        assert.deepEqual(notifications, []);
+    });
+
+    await t.test('a send that ran into the deadline penalises the account', async () => {
+        sendError = Object.assign(new Error('SMTP delivery did not complete within 300 seconds'), {
+            code: 'ETIMEDOUT',
+            deadlineExceeded: true,
+            permanent: true
+        });
+        const { ctx, penalties } = createSubmitClient();
+
+        await assert.rejects(() => ctx.submitMessage(submission()), /did not complete/);
+        assert.deepEqual(penalties, [[submitPenaltyKey('test-account'), '1', 'PX', SUBMIT_PENALTY_MS]]);
+    });
+
+    await t.test('any other send failure does not', async () => {
+        sendError = Object.assign(new Error('Connection refused'), { code: 'ECONNECTION' });
+        const { ctx, penalties } = createSubmitClient();
+
+        await assert.rejects(() => ctx.submitMessage(submission()), /Connection refused/);
+        assert.deepEqual(penalties, []);
+    });
+
+    // A throw from any step after the server accepted the message would make the submit worker
+    // retry, and so deliver the message a second time
+    await t.test('every step after the send keeps its own failure', async t => {
+        const boom = () => {
+            throw new Error('step failed');
+        };
+        const rejecting = async () => boom();
+        const steps = {
+            'the EHLO copy and the SMTP status': ctx => {
+                ctx.redis.hSetExists = rejecting;
+            },
+            'the job progress': ctx => {
+                ctx.submitQueue = { getJob: async () => ({ updateProgress: rejecting }) };
+            },
+            'the messageSent notification': ctx => {
+                ctx.notify = rejecting;
+            },
+            'the sent copy': ctx => {
+                // only an account with IMAP gets a copy in its Sent Mail folder
+                ctx.accountObject = {
+                    loadAccountData: async () => ({ account: 'test-account', smtp: { host: 'smtp.example.com' }, imap: { host: 'imap.example.com' } })
+                };
+                delete ctx.uploadToSentFolder;
+                ctx.checkIMAPConnection = boom;
+            },
+            'the draft cleanup': ctx => {
+                ctx.deleteMessage = rejecting;
+            },
+            'the reference flags': ctx => {
+                ctx.checkIMAPConnection = () => true;
+                ctx.updateMessage = rejecting;
+            },
+            'the feedback key': ctx => {
+                ctx.updateFeedbackKey = rejecting;
+            },
+            'the gateway stats': () => {
+                gatewayStub = { gatewayData: { gateway: 'gw1' }, gatewayObject: { gateway: 'gw1', update: rejecting } };
+            }
+        };
+        const message = () => Object.assign(submission(), { draft: { message: 'DRAFT1' }, reference: { message: 'REF1', update: true, action: 'reply' } });
+
+        for (const [name, breakStep] of Object.entries(steps)) {
+            await t.test(name, async () => {
+                sent.length = 0;
+                gatewayStub = null;
+                const { ctx } = createSubmitClient();
+                ctx.deleteMessage = async () => true;
+                ctx.updateMessage = async () => true;
+                breakStep(ctx);
+
+                const result = await ctx.submitMessage(message());
+
+                assert.deepEqual(result, { response: '250 Accepted', messageId: '<test@example.com>' });
+                assert.equal(sent.length, 1);
+            });
+        }
+
+        await t.test('all of them at once', async () => {
+            sent.length = 0;
+            gatewayStub = null;
+            const { ctx } = createSubmitClient();
+            for (const breakStep of Object.values(steps)) {
+                breakStep(ctx);
+            }
+
+            const result = await ctx.submitMessage(message());
+
+            assert.deepEqual(result, { response: '250 Accepted', messageId: '<test@example.com>' });
+            assert.equal(sent.length, 1);
+        });
     });
 });
 
@@ -275,4 +392,111 @@ test('isFailedDelivery()', () => {
     }
     assert.equal(isFailedDelivery({ action: 'failed', recipient: 'user@example.com' }), false, 'needs the original message id');
     assert.equal(isFailedDelivery(null), false);
+});
+
+// applyInlineReference() quoted the original into the text part only when the new text was
+// non-empty, so a forward sent with no note of its own went out with an html part alone
+test.describe('applyInlineReference', () => {
+    const referencedMessage = {
+        from: { name: 'Sender', address: 'sender@example.com' },
+        to: [{ address: 'rcpt@example.com' }],
+        subject: 'Original',
+        date: '2026-11-19T10:00:00.000Z',
+        text: { plain: 'The original body.', html: '<p>The original body.</p>' },
+        attachments: []
+    };
+    const apply = data => BaseClient.prototype.applyInlineReference.call({ logger: noopLogger }, data, referencedMessage, { locale: 'en', tz: 'UTC' });
+
+    test('an empty text still gets the quoted original', () => {
+        const data = { text: '', reference: { action: 'forward', inline: true } };
+        apply(data);
+        assert.match(data.text, /Begin forwarded message/);
+        assert.match(data.text, /The original body\./);
+        assert.match(data.html, /The original body\./);
+    });
+
+    test('the new text comes before the quote', () => {
+        const data = { text: 'My answer', reference: { action: 'reply', inline: true } };
+        apply(data);
+        assert.ok(data.text.startsWith('My answer'));
+        assert.match(data.text, /> The original body\./);
+    });
+
+    test('a message given only html gets its text part from that html', () => {
+        // the draft upload path has no html-to-text step of its own before this
+        for (const text of [undefined, '']) {
+            const data = { html: '<p>Only html</p>', text, reference: { action: 'reply', inline: true } };
+            apply(data);
+            assert.ok(data.text.startsWith('Only html'), data.text);
+            assert.match(data.text, /> The original body\./);
+            assert.match(data.html, /Only html/);
+        }
+    });
+
+    test('an original with a text part alone is quoted into the html the caller writes', () => {
+        const plainOriginal = { ...referencedMessage, text: { plain: 'Plain <original> body.' } };
+        for (const action of ['reply', 'forward']) {
+            const data = { text: 'My answer', html: '<p>My <b>answer</b></p>', reference: { action, inline: true } };
+            BaseClient.prototype.applyInlineReference.call({ logger: noopLogger }, data, plainOriginal, { locale: 'en', tz: 'UTC' });
+            assert.match(data.html, /My <b>answer<\/b>/, action);
+            assert.match(data.html, /<blockquote/, action);
+            // the text is escaped on its way into the html
+            assert.match(data.html, /Plain &lt;original&gt; body\./, action);
+            assert.match(data.text, /Plain <original> body\./, action);
+        }
+    });
+
+    test('a text-only answer to a text-only original gets no html part', () => {
+        const data = { text: 'Plain answer', reference: { action: 'reply', inline: true } };
+        BaseClient.prototype.applyInlineReference.call(
+            { logger: noopLogger },
+            data,
+            { ...referencedMessage, text: { plain: 'Plain original.' } },
+            { locale: 'en', tz: 'UTC' }
+        );
+        assert.equal(data.html, undefined);
+        assert.match(data.text, /> Plain original\./);
+    });
+
+    test('an original without a plain text part is still quoted', () => {
+        const data = { text: 'Note', reference: { action: 'forward', inline: true } };
+        BaseClient.prototype.applyInlineReference.call(
+            { logger: noopLogger },
+            data,
+            { ...referencedMessage, text: { html: '<p>Html only original</p>' } },
+            { locale: 'en', tz: 'UTC' }
+        );
+        assert.ok(data.text.startsWith('Note'));
+        assert.match(data.html, /Html only original/);
+    });
+});
+
+test('reference flags', async t => {
+    await t.test('a reply sets \\Answered and a forward only $Forwarded, each once', () => {
+        assert.equal(needsReferenceFlagUpdate('reply', []), true);
+        assert.equal(needsReferenceFlagUpdate('reply-all', undefined), true);
+        assert.equal(needsReferenceFlagUpdate('reply', ['\\Seen', '\\Answered']), false);
+        assert.equal(needsReferenceFlagUpdate('forward', ['\\Seen']), true);
+        assert.equal(needsReferenceFlagUpdate('forward', ['$Forwarded']), false);
+        // an answered message forwarded later is still marked forwarded, a forwarded one replied to is still answered
+        assert.equal(needsReferenceFlagUpdate('forward', ['\\Answered']), true);
+        assert.equal(needsReferenceFlagUpdate('reply', ['$Forwarded']), true);
+    });
+
+    for (const [action, flag] of [
+        ['reply', '\\Answered'],
+        ['reply-all', '\\Answered'],
+        ['forward', '$Forwarded']
+    ]) {
+        await t.test(`delivering a ${action} adds ${flag} alone`, async () => {
+            const { ctx } = createSubmitClient();
+            const updates = [];
+            ctx.checkIMAPConnection = () => true;
+            ctx.updateMessage = async (id, changes) => updates.push({ id, changes });
+
+            await ctx.updateReferenceFlags({ message: 'REF1', action }, 'q1', '<m@example.com>', {});
+
+            assert.deepEqual(updates, [{ id: 'REF1', changes: { flags: { add: [flag] } } }]);
+        });
+    }
 });

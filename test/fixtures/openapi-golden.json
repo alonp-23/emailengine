@@ -948,13 +948,13 @@
           },
           "locale": {
             "type": "string",
-            "description": "Optional locale",
+            "description": "Language of the text EmailEngine adds to messages sent from this account, such as the \"On ... wrote:\" line of an inline reply. A language tag like \"sv\"; a submit request can override it with its own `locale`",
             "example": "fr",
             "maxLength": 100
           },
           "tz": {
             "type": "string",
-            "description": "Optional timezone",
+            "description": "Time zone of the dates EmailEngine writes into messages sent from this account. A submit request can override it with its own `tz`",
             "example": "Europe/Tallinn",
             "maxLength": 100
           }
@@ -2103,13 +2103,13 @@
           },
           "locale": {
             "type": "string",
-            "description": "Optional locale",
+            "description": "Language of the text EmailEngine adds to messages sent from this account, such as the \"On ... wrote:\" line of an inline reply. A language tag like \"sv\"; a submit request can override it with its own `locale`",
             "example": "fr",
             "maxLength": 100
           },
           "tz": {
             "type": "string",
-            "description": "Optional timezone",
+            "description": "Time zone of the dates EmailEngine writes into messages sent from this account. A submit request can override it with its own `tz`",
             "example": "Europe/Tallinn",
             "maxLength": 100
           },
@@ -2823,13 +2823,13 @@
           },
           "locale": {
             "type": "string",
-            "description": "Optional locale",
+            "description": "Language of the text EmailEngine adds to messages sent from this account, such as the \"On ... wrote:\" line of an inline reply. A language tag like \"sv\"; a submit request can override it with its own `locale`",
             "example": "fr",
             "maxLength": 100
           },
           "tz": {
             "type": "string",
-            "description": "Optional timezone",
+            "description": "Time zone of the dates EmailEngine writes into messages sent from this account. A submit request can override it with its own `tz`",
             "example": "Europe/Tallinn",
             "maxLength": 100
           }
@@ -4096,8 +4096,13 @@
           },
           "encodedSize": {
             "type": "integer",
-            "description": "Size of the attachment as stored in the email (base64 encoded). The actual decoded file size is approximately 75% of this value.",
+            "description": "Size of the attachment as the mail server reports it. For IMAP accounts this is the encoded size of the MIME part (for base64 about 4/3 of the file); the Gmail API and MS Graph report the file size. Use `size` for the file size.",
             "example": 48
+          },
+          "size": {
+            "type": "integer",
+            "description": "Size of the attachment file in bytes, as an estimate. For IMAP accounts it is computed from the encoded size, assuming base64 in 76 character lines, and is an upper bound for quoted-printable. MS Graph reports the size of the attachment item, which can be a little larger than the file",
+            "example": 36
           },
           "embedded": {
             "type": "boolean",
@@ -7054,13 +7059,13 @@
           },
           "locale": {
             "type": "string",
-            "description": "Optional locale",
+            "description": "Language of the text EmailEngine adds to the message, such as the \"On ... wrote:\" line and the forwarded message headers of `reference.inline`. A language tag like \"sv\" or \"pt-BR\"; only the language part is used, and a language without a translation is written in English. Defaults to the locale of the account, then to the locale setting of the instance",
             "example": "fr",
             "maxLength": 100
           },
           "tz": {
             "type": "string",
-            "description": "Optional timezone",
+            "description": "Time zone of the dates EmailEngine writes into the message, such as the date of the quoted message with `reference.inline`. Defaults to the time zone of the account, then to the timezone setting of the instance",
             "example": "Europe/Tallinn",
             "maxLength": 100
           },
@@ -7987,6 +7992,15 @@
           }
         }
       },
+      "DiscoveredOAuth2Provider": {
+        "type": "string",
+        "description": "OAuth2 provider the mailbox signs in with, when the address or its domain identifies one: `gmail` for Gmail and Google Workspace, `outlook` for Outlook.com and Microsoft 365. Matches the `provider` of an OAuth2 application (see `GET /v1/oauth2`), so a setup flow can offer that sign-in instead of asking for a password. Absent when unknown.",
+        "example": "outlook",
+        "enum": [
+          "gmail",
+          "outlook"
+        ]
+      },
       "DiscoveredEmailSettings": {
         "type": "object",
         "properties": {
@@ -8018,6 +8032,9 @@
           },
           "appPassword": {
             "$ref": "#/components/schemas/DiscoveredAppPasswordInfo"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/DiscoveredOAuth2Provider"
           },
           "_source": {
             "type": "string",

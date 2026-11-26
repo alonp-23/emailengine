@@ -293,23 +293,43 @@ test('buildOidcBellProvider', async t => {
     };
 
     await t.test('maps endpoints and enables PKCE S256', () => {
-        const provider = sso.buildOidcBellProvider(doc);
+        const provider = sso.buildOidcBellProvider(() => doc);
         assert.equal(provider.protocol, 'oauth2');
         assert.equal(provider.useParamsAuth, true);
         assert.equal(provider.pkce, 'S256');
-        assert.equal(provider.auth, doc.authorization_endpoint);
-        assert.equal(provider.token, doc.token_endpoint);
+        assert.equal(provider.auth(), doc.authorization_endpoint);
+        assert.equal(provider.token(), doc.token_endpoint);
         assert.deepEqual(provider.scope, ['openid', 'profile', 'email']);
         assert.equal(typeof provider.profile, 'function');
     });
 
+    await t.test('reads the endpoints from the current document on every sign-in', async () => {
+        let current = null;
+        const provider = sso.buildOidcBellProvider(() => current);
+
+        // before discovery has succeeded a sign-in fails instead of reaching any endpoint
+        assert.throws(() => provider.auth(), { code: 'OidcDiscoveryUnavailable' });
+        assert.throws(() => provider.token(), { code: 'OidcDiscoveryUnavailable' });
+        await assert.rejects(
+            provider.profile({}, {}, async () => ({})),
+            { code: 'OidcDiscoveryUnavailable' }
+        );
+
+        current = doc;
+        assert.equal(provider.auth(), doc.authorization_endpoint);
+        assert.equal(provider.token(), doc.token_endpoint);
+
+        current = { ...doc, authorization_endpoint: 'https://idp.example.com/auth2' };
+        assert.equal(provider.auth(), 'https://idp.example.com/auth2');
+    });
+
     await t.test('honors a scope override and still forces openid', () => {
-        const provider = sso.buildOidcBellProvider(doc, { scopes: 'profile groups' });
+        const provider = sso.buildOidcBellProvider(() => doc, { scopes: 'profile groups' });
         assert.deepEqual(provider.scope, ['openid', 'profile', 'groups']);
     });
 
     await t.test('profile() fetches userinfo and maps it (incl. groups) onto credentials', async () => {
-        const provider = sso.buildOidcBellProvider(doc);
+        const provider = sso.buildOidcBellProvider(() => doc);
         let requestedUrl = null;
         const get = async url => {
             requestedUrl = url;
@@ -329,7 +349,7 @@ test('buildOidcBellProvider', async t => {
     });
 
     await t.test('profile() honors a custom groupsClaim (dotted path)', async () => {
-        const provider = sso.buildOidcBellProvider(doc, { groupsClaim: 'realm_access.roles' });
+        const provider = sso.buildOidcBellProvider(() => doc, { groupsClaim: 'realm_access.roles' });
         const get = async () => ({ sub: 'abc', realm_access: { roles: ['admin'] } });
         const credentials = {};
         await provider.profile(credentials, {}, get);

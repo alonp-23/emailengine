@@ -1,7 +1,7 @@
 'use strict';
 
 const { parentPort, workerData } = require('worker_threads');
-const { isSuspended } = require('../lib/license-subscription');
+const { buildViewContext } = require('../lib/ui-view-context');
 
 const packageData = require('../package.json');
 const config = require('@zone-eu/wild-config');
@@ -40,12 +40,10 @@ const {
     readEnvList,
     threadStats,
     hasEnvValue,
-    getBoolean,
     loadTlsConfig,
     resolveOAuthErrorStatus,
     verifyServiceSignature,
     SIGNING_PURPOSE,
-    setAdminSession,
     isEndedSession
 } = require('../lib/tools');
 const { matchIp, resolveClientIp, detectAutomatedRequest, getAccountHttpRoute } = require('../lib/utils/network');
@@ -95,6 +93,7 @@ const settings = require('../lib/settings');
 const getSecret = require('../lib/get-secret');
 
 const sso = require('../lib/sso');
+const { registerOktaAuth, registerOidcAuth } = require('../lib/sso-routes');
 
 const routesUi = require('../lib/routes-ui');
 const specOptions = require('../lib/swagger-options');
@@ -120,8 +119,7 @@ const {
     DEFAULT_EENGINE_TIMEOUT,
     DEFAULT_MAX_ATTACHMENT_SIZE,
     MAX_FORM_TTL,
-    NONCE_BYTES,
-    LAST_DOCUMENT_STORE_VERSION
+    NONCE_BYTES
 } = consts;
 
 const registerApiRoutes = require('../lib/api-routes');
@@ -950,215 +948,28 @@ async function registerSessionAuth(server) {
     return secureCookie;
 }
 
-// Shared by the SSO strategies. The redirect URL is captured at strategy registration;
-// the validators re-read it from settings so an origin change after startup (which would
-// break the registered callback URL) disables the SSO button instead of failing mid-flow.
-let getServiceRedirectUrl = async () => new URL((await settings.get('serviceUrl')) || `http://${API_HOST}${API_PORT !== 80 ? `:${API_PORT}` : ''}`);
-let serviceOriginUnchanged = async redirectUrl => (await getServiceRedirectUrl()).origin === redirectUrl.origin;
-// A sign-in the IdP denied, or the user cancelled, comes back as an unauthenticated try-mode
-// request. It gets the same flash-and-redirect the allow-list denial in the OIDC handler
-// uses, so the user lands on the login form with a way to try again rather than on the
-// generic error page with bell's raw message. The reason goes to the log only. ?sso_denied=1
-// stops a forced instance from auto-redirecting straight back into the flow.
-let ssoFailureRedirect = async (request, h, method) => {
-    request.logger.warn({
-        msg: 'SSO login failed',
-        method,
-        reason: (request.auth.error && request.auth.error.message) || 'unknown',
-        remoteAddress: request.app.ip
-    });
-    await request.flash({ type: 'danger', message: 'Single sign-on failed or was cancelled. Please try again' });
-    return h.redirect('/admin/login?sso_denied=1');
-};
+// What the SSO strategies (lib/sso-routes.js) read from this worker
+function ssoContext(secureCookie) {
+    return {
+        secureCookie,
+        getCookiePassword: () => settings.get('cookiePassword'),
+        getServiceRedirectUrl: async () => new URL((await settings.get('serviceUrl')) || `http://${API_HOST}${API_PORT !== 80 ? `:${API_PORT}` : ''}`),
+        sessionPasswordVersion,
+        logger
+    };
+}
 
-async function registerOktaAuth(server, secureCookie) {
+async function registerSsoAuth(server, secureCookie) {
     if (USE_OKTA_AUTH) {
-        let redirectUrl = await getServiceRedirectUrl();
-
-        server.decorate('toolkit', 'validateOktaConfig', () => serviceOriginUnchanged(redirectUrl));
-
-        server.auth.strategy('okta', 'bell', {
-            provider: 'okta',
-            config: {
-                uri: OKTA_BASE_URL
-            },
-            password: await settings.get('cookiePassword'),
-            isSecure: secureCookie,
-            location: redirectUrl.origin,
-
+        await registerOktaAuth(server, ssoContext(secureCookie), {
+            baseUrl: OKTA_BASE_URL,
             clientId: OKTA_OAUTH2_CLIENT_ID,
             clientSecret: OKTA_OAUTH2_CLIENT_SECRET
         });
-
-        server.route({
-            method: ['GET', 'POST'],
-            path: '/admin/login/okta',
-            async handler(request, h) {
-                if (!request.auth.isAuthenticated) {
-                    return ssoFailureRedirect(request, h, 'okta');
-                }
-
-                let profile = (request.auth.credentials && request.auth.credentials.profile) || {};
-
-                // The same minimal shape the OIDC branch below stores, for the same reasons: the
-                // full bell credentials carry the access and refresh tokens, the callback query
-                // and the raw userinfo document, none of which the session validator reads, and
-                // all of which would sit in the browser's cookie for the life of the session.
-                setAdminSession(request, {
-                    provider: 'okta',
-                    profile: {
-                        id: profile.id,
-                        username: profile.username,
-                        displayName: profile.displayName,
-                        email: profile.email
-                    },
-                    passwordVersion: await sessionPasswordVersion()
-                });
-
-                request.logger.info({ msg: 'Admin login successful', user: profile.username || 'unknown', method: 'okta', remoteAddress: request.app.ip });
-                return h.redirect('/admin');
-            },
-            options: {
-                auth: {
-                    mode: 'try',
-                    strategy: 'okta'
-                }
-            }
-        });
     }
-}
-
-async function registerOidcAuth(server, secureCookie) {
     if (USE_OIDC_AUTH) {
-        let redirectUrl = await getServiceRedirectUrl();
-
-        // bell needs static auth/token URLs at strategy-registration time, so the
-        // discovery document has to be in hand before the strategy and the callback
-        // route that depends on it can be registered. A failure to fetch it (IdP outage
-        // or misconfig) must NOT take EmailEngine down - password and passkey login plus
-        // the REST API have to keep working - so SSO simply stays switched off until a
-        // later attempt succeeds.
-        //
-        // Assigned from enableOidc()'s return value, so it can only be set once that
-        // strategy and route exist and validateOidcConfig() can never advertise a login
-        // button - or trigger OIDC_FORCED - for a route that is not registered.
-        let oidcDiscovery = null;
-
-        // Registered unconditionally so the login/security views can call it; returns
-        // false when discovery failed or the serviceUrl origin drifted from startup.
-        server.decorate('toolkit', 'validateOidcConfig', async () => !!oidcDiscovery && (await serviceOriginUnchanged(redirectUrl)));
-
-        // RP-initiated logout URL for the /admin/logout handler. Returns null unless
-        // OIDC_LOGOUT is enabled and the IdP advertised an end_session_endpoint.
-        // post_logout_redirect_uri is only sent when OIDC_POST_LOGOUT_REDIRECT_URI is
-        // configured (and registered at the IdP); otherwise the IdP shows its own
-        // logged-out page, so logout needs no IdP-side configuration.
-        server.decorate('toolkit', 'oidcLogoutUrl', idToken => {
-            if (!sso.OIDC_LOGOUT || !oidcDiscovery || !oidcDiscovery.end_session_endpoint) {
-                return null;
-            }
-            return sso.buildLogoutUrl(oidcDiscovery.end_session_endpoint, {
-                idToken,
-                clientId: sso.OIDC_CLIENT_ID,
-                postLogoutRedirectUri: sso.OIDC_POST_LOGOUT_REDIRECT_URI || undefined
-            });
-        });
-
-        const enableOidc = async discoveryDoc => {
-            server.auth.strategy('oidc', 'bell', {
-                provider: sso.buildOidcBellProvider(discoveryDoc),
-                password: await settings.get('cookiePassword'),
-                isSecure: secureCookie,
-                location: redirectUrl.origin,
-
-                clientId: sso.OIDC_CLIENT_ID,
-                clientSecret: sso.OIDC_CLIENT_SECRET
-            });
-
-            server.route({
-                method: ['GET', 'POST'],
-                path: '/admin/login/oidc',
-                async handler(request, h) {
-                    if (!request.auth.isAuthenticated) {
-                        return ssoFailureRedirect(request, h, 'oidc');
-                    }
-
-                    let profile = (request.auth.credentials && request.auth.credentials.profile) || {};
-
-                    // Enforce the optional email/group allow-lists before establishing the session.
-                    if (!sso.isAuthorized(profile, oidcAllowList, oidcAllowGroups)) {
-                        request.logger.warn({
-                            msg: 'OIDC login denied by allow-list',
-                            user: profile.username || profile.email || 'unknown',
-                            groups: profile.groups,
-                            method: 'oidc',
-                            remoteAddress: request.app.ip
-                        });
-                        await request.flash({ type: 'danger', message: 'Your account is not authorized to access this admin panel' });
-                        // ?sso_denied=1 stops a forced instance from auto-redirecting back into the
-                        // OIDC flow before the user can see the error.
-                        return h.redirect('/admin/login?sso_denied=1');
-                    }
-
-                    // Store only the minimal profile - not the full bell credentials. OIDC
-                    // access/refresh tokens (e.g. Keycloak JWTs) can push the iron-sealed
-                    // `ee` cookie past the ~4KB browser limit and cause a silent login loop.
-                    // Group names are kept so the per-request authorization re-check works;
-                    // the id_token is kept only as the logout id_token_hint (RP-initiated logout).
-                    const passwordVersion = await sessionPasswordVersion();
-                    setAdminSession(request, {
-                        provider: 'oidc',
-                        profile: {
-                            id: profile.id,
-                            username: profile.username,
-                            displayName: profile.displayName,
-                            email: profile.email,
-                            // Carried so the per-request isAuthorized() re-check enforces email
-                            // verification the same way the login gate above does.
-                            emailVerified: profile.emailVerified,
-                            groups: profile.groups
-                        },
-                        passwordVersion,
-                        idToken: (request.auth.artifacts && request.auth.artifacts.id_token) || null
-                    });
-
-                    request.logger.info({ msg: 'Admin login successful', user: profile.username || 'unknown', method: 'oidc', remoteAddress: request.app.ip });
-                    return h.redirect('/admin');
-                },
-                options: {
-                    auth: {
-                        mode: 'try',
-                        strategy: 'oidc'
-                    }
-                }
-            });
-
-            return discoveryDoc;
-        };
-
-        let startupDoc = await sso.fetchOidcDiscovery().catch(err => {
-            logger.error({ msg: 'OIDC SSO disabled for now: discovery failed, retrying in the background', issuer: sso.OIDC_ISSUER, err });
-            return null;
-        });
-
-        if (startupDoc) {
-            // A registration failure here is deliberately fatal: a misconfiguration should
-            // stop the worker at boot rather than come up quietly without SSO. The retry
-            // path below is the opposite on purpose - it must not kill a serving process.
-            oidcDiscovery = await enableOidc(startupDoc);
-        } else {
-            // Deliberately not awaited - this runs for as long as the IdP is unreachable.
-            // hapi accepts both a new auth strategy and a new route after the server has
-            // started, so a later success brings SSO up in place, with no restart.
-            sso.retryDiscovery({
-                onError: (err, attempt) => logger.debug({ msg: 'OIDC discovery retry failed', issuer: sso.OIDC_ISSUER, attempt, err })
-            })
-                .then(async retriedDoc => {
-                    oidcDiscovery = await enableOidc(retriedDoc);
-                    logger.info({ msg: 'OIDC SSO enabled after retrying discovery', issuer: sso.OIDC_ISSUER });
-                })
-                .catch(err => logger.error({ msg: 'OIDC SSO disabled: discovery retry failed', issuer: sso.OIDC_ISSUER, err }));
-        }
+        // the background discovery retry, when there is one, is deliberately not awaited
+        await registerOidcAuth(server, ssoContext(secureCookie), { allowList: oidcAllowList, allowGroups: oidcAllowGroups });
     }
 }
 
@@ -2650,248 +2461,7 @@ function registerViews(server) {
         // template edits.
         isCached: process.env.NODE_ENV !== 'development',
 
-        async context(request) {
-            // The three reads are independent, and this runs on every admin page render. The
-            // OAuth2 auth flags are best-effort - a failure to read them must not take the page
-            // down with it.
-            const [pendingMessages, settingsValues, oauthAuthFlags] = await Promise.all([
-                flash(redis, request),
-                settings.getMulti(
-                    'upgrade',
-                    'webhookErrorFlag',
-                    'webhooksEnabled',
-                    'disableTokens',
-                    'tract',
-                    'templateHeader',
-                    'templateHtmlHead',
-                    'documentStoreEnabled',
-                    'serviceUrl',
-                    'language',
-                    'locale',
-                    'timezone',
-                    'pageBrandName',
-                    'notificationBaseUrl'
-                ),
-                oauth2Apps.listAuthFlags().catch(err => {
-                    logger.error({ msg: 'Failed to list OAuth2 app auth flags', err });
-                    return [];
-                })
-            ]);
-
-            const {
-                upgrade: upgradeInfo,
-                webhookErrorFlag,
-                webhooksEnabled,
-                disableTokens,
-                tract,
-                templateHeader: embeddedTemplateHeader,
-                templateHtmlHead: embeddedTemplateHtmlHead,
-                // The Document Store was removed in 2.82.0. The setting that switched it on is
-                // read raw off the settings hash (it is no longer in the settings schema), so an
-                // instance upgraded with the feature still on is told where it went instead of
-                // losing it quietly
-                documentStoreEnabled: documentStoreRemoved,
-                serviceUrl,
-                language,
-                locale,
-                timezone,
-                pageBrandName,
-                notificationBaseUrl
-            } = settingsValues;
-
-            let systemAlerts = [];
-            let authData;
-
-            switch (request.auth.artifacts && request.auth.artifacts.provider) {
-                case 'okta': {
-                    let profile = request.auth.artifacts.profile || {};
-                    authData = {
-                        user: profile.username,
-                        name:
-                            []
-                                .concat(profile.firstName || [])
-                                .concat(profile.lastName || [])
-                                .join(' ') || profile.username,
-                        enabled: !!profile.username,
-                        isAdmin: false
-                    };
-                    break;
-                }
-
-                case 'oidc': {
-                    let profile = request.auth.artifacts.profile || {};
-                    authData = {
-                        user: profile.username,
-                        name: profile.displayName || profile.username,
-                        enabled: !!profile.username,
-                        isAdmin: false
-                    };
-                    break;
-                }
-
-                default:
-                    authData = await settings.get('authData');
-                    if (authData) {
-                        authData.name = authData.user;
-                        authData.enabled = true;
-                        authData.isAdmin = true;
-                    } else {
-                        authData = {
-                            name: 'admin',
-                            user: 'admin',
-                            enabled: false,
-                            isAdmin: true
-                        };
-                    }
-                    break;
-            }
-
-            if (upgradeInfo && upgradeInfo.canUpgrade) {
-                systemAlerts.push({
-                    url: '/admin/upgrade',
-                    level: 'info',
-                    icon: 'icon-[tabler--alert-triangle]',
-                    message: `An update is available: Emailengine v${upgradeInfo.available}`
-                });
-            }
-
-            // The subscription behind the license (lib/license-subscription.js): paused, or a date it pauses on
-            let licenseSubscription = request.app.licenseInfo && request.app.licenseInfo.subscription;
-            if (isSuspended(request.app.licenseInfo)) {
-                systemAlerts.push({
-                    url: '/admin/config/license',
-                    level: 'danger',
-                    icon: 'icon-[tabler--player-pause]',
-                    message: 'EmailEngine is paused: the subscription behind the license key is not in good standing'
-                });
-            } else if (licenseSubscription) {
-                systemAlerts.push({
-                    url: '/admin/config/license',
-                    level: 'danger',
-                    icon: 'icon-[tabler--alert-triangle]',
-                    message: `Subscription payment overdue: EmailEngine pauses in ${licenseSubscription.days} day${
-                        licenseSubscription.days !== 1 ? 's' : ''
-                    } unless it is paid`
-                });
-            }
-
-            // OAuth2 apps whose token requests are being refused (setFlag() writes the failure
-            // into app meta). Shown on every admin page: the accounts on such an app sit
-            // disconnected until the operator acts, so the OAuth config page alone is not enough.
-            for (let { app, authFlag } of oauthAuthFlags) {
-                systemAlerts.push({
-                    url: authFlag.url || `/admin/config/oauth/app/${encodeURIComponent(app)}`,
-                    level: 'danger',
-                    icon: 'icon-[tabler--lock-open]',
-                    message: authFlag.message
-                });
-            }
-
-            if (webhooksEnabled && webhookErrorFlag && webhookErrorFlag.message) {
-                systemAlerts.push({
-                    url: '/admin/config/webhooks',
-                    level: 'danger',
-                    icon: 'icon-[tabler--link]',
-                    message: 'Webhook delivery is failing'
-                });
-            }
-
-            // a paused license is still registered, and the alert above says why it is not active
-            if (!request.app.licenseInfo || (!request.app.licenseInfo.active && !request.app.licenseInfo.details)) {
-                systemAlerts.push({
-                    url: '/admin/config/license',
-                    level: 'warning',
-                    icon: 'icon-[tabler--key]',
-                    message: 'No license key registered'
-                });
-            }
-
-            let licenseDetails = Object.assign({}, (request.app.licenseInfo && request.app.licenseInfo.details) || {});
-
-            if (licenseDetails.expires) {
-                let delayMs = new Date(licenseDetails.expires) - Date.now();
-                licenseDetails.expiresDays = Math.max(Math.ceil(delayMs / (24 * 3600 * 1000)), 0);
-            }
-
-            if (licenseDetails.expires && licenseDetails.expiresDays < 31) {
-                systemAlerts.push({
-                    url: '/admin/config/license',
-                    level: 'warning',
-                    icon: 'icon-[tabler--key]',
-                    message: `Your ${licenseDetails.trial ? `trial ` : ''}license key will expire in ${licenseDetails.expiresDays} day${
-                        licenseDetails.expiresDays !== 1 ? 's' : ''
-                    }`
-                });
-            }
-
-            if (disableTokens) {
-                systemAlerts.push({
-                    url: '/admin/config/security',
-                    level: 'warning',
-                    icon: 'icon-[tabler--key]',
-                    message: `Access tokens are disabled for API requests`
-                });
-            }
-
-            if (documentStoreRemoved) {
-                systemAlerts.push({
-                    url: '/admin',
-                    level: 'danger',
-                    icon: 'icon-[tabler--database]',
-                    message: `The Document Store has been removed from EmailEngine. Downgrade to v${LAST_DOCUMENT_STORE_VERSION} if you still need it.`
-                });
-            }
-
-            // Check if setup warnings should be disabled (for documentation screenshots, CI, etc.)
-            const disableSetupWarnings = hasEnvValue('EENGINE_DISABLE_SETUP_WARNINGS') ? getBoolean(readEnvValue('EENGINE_DISABLE_SETUP_WARNINGS')) : false;
-
-            if (disableSetupWarnings) {
-                // Keep only critical (danger) alerts, suppress info/warning level
-                systemAlerts = systemAlerts.filter(alert => alert.level === 'danger');
-            }
-
-            // Whether the requester holds a session at all, so a public page (the hosted form's
-            // error page, for one) can tell a mailbox owner from an admin without reading
-            // authData, which describes the instance rather than the requester
-            const isAuthenticated = !!(request.auth && request.auth.isAuthenticated);
-
-            return {
-                // the per-request CSP nonce every inline <script> carries (lib/security-headers.js)
-                cspNonce: request.app.cspNonce,
-                pageBrandName: pageBrandName || 'EmailEngine',
-                values: request.payload || {},
-                errors: (request.error && request.error.details) || {},
-                pendingMessages,
-                licenseInfo: request.app.licenseInfo,
-                licenseDetails,
-                trialPossible: !tract,
-                authData,
-                isAuthenticated,
-                // The dashboard is an admin destination: a link to it belongs on a page only for
-                // a requester who holds an admin session, or on an instance with no admin login
-                showDashboardLink: isAuthenticated || !(authData && authData.enabled),
-                packageData,
-                systemAlerts,
-                embeddedTemplateHeader,
-                embeddedTemplateHtmlHead,
-                currentYear: new Date().getFullYear(),
-                documentStoreRemoved,
-                lastDocumentStoreVersion: LAST_DOCUMENT_STORE_VERSION,
-                updateBrowserInfo: !serviceUrl || !language || !timezone,
-
-                // Suppress large banner warnings when EENGINE_DISABLE_SETUP_WARNINGS is set
-                hideLicenseWarning: disableSetupWarnings,
-                disableAuthWarning: disableSetupWarnings,
-
-                mainServiceUrl: serviceUrl,
-                notificationBaseUrl,
-
-                userLocale: locale,
-                userTimezone: timezone,
-
-                templateLocale: request.app.locale
-            };
-        }
+        context: buildViewContext
     });
 }
 
@@ -3177,8 +2747,7 @@ const init = async () => {
 
     const secureCookie = await registerSessionAuth(server);
 
-    await registerOktaAuth(server, secureCookie);
-    await registerOidcAuth(server, secureCookie);
+    await registerSsoAuth(server, secureCookie);
 
     await registerServerPlugins(server);
 

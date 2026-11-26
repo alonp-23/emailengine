@@ -29,6 +29,25 @@ const MESSAGE_BODY_STYLES = `
         height: auto;
     }
 
+    /* A message laid out wider than the viewer (a 600px newsletter on a phone) scrolls
+       sideways inside the clipped host instead of losing its right edge */
+    .ee-message-body-content {
+        overflow-x: auto;
+    }
+
+    /* A plain-text message: EmailEngine renders it as HTML with a fixed 12px font, inline, so the
+       override needs the weight of !important; the message itself had no styling to lose */
+    .ee-message-body-content[data-plain] :is(div, p, span, pre) {
+        font-family: inherit !important;
+        font-size: inherit !important;
+    }
+
+    .ee-message-body-content > pre {
+        white-space: pre-wrap;
+        font-family: inherit;
+        margin: 0;
+    }
+
     /* Quoted thread history, folded away by EmailEngine - see _labelCollapsedThreads() */
     .ee-collapsed-thread {
         margin-top: 12px;
@@ -78,7 +97,389 @@ const ICON_PATHS = {
     move: '<path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
     send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
-    compose: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'
+    compose: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    reply: '<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>',
+    replyAll: '<polyline points="7 17 2 12 7 7"/><polyline points="12 17 7 12 12 7"/><path d="M22 18v-2a4 4 0 0 0-4-4H7"/>',
+    forward: '<polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/>',
+    paperclip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+    close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+    junk: '<path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+    archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+    folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+    star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    minimize: '<path d="M5 12h14"/>',
+    expand: '<path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>',
+    bold: '<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>',
+    italic: '<line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/>',
+    list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+    listOrdered:
+        '<path d="M10 12h11"/><path d="M10 18h11"/><path d="M10 6h11"/><path d="M4 10h2"/><path d="M4 6h1v4"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'
+};
+
+// Escapes text for HTML element content and quoted attribute values
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    return String(value).replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
+}
+
+// Folder icons by special-use flag; any other folder gets the plain folder icon
+const FOLDER_ICONS = {
+    '\\Inbox': 'inbox',
+    '\\Drafts': 'file',
+    '\\Sent': 'send',
+    '\\Trash': 'trash',
+    '\\Junk': 'junk',
+    '\\Archive': 'archive',
+    '\\All': 'archive',
+    '\\Flagged': 'star'
+};
+
+// The name a folder is shown by. Servers name the inbox "INBOX" (RFC 3501 makes the name special
+// and case-insensitive), which reads as shouting next to "Drafts" and "Sent".
+function folderDisplayName(folder) {
+    if (!folder) {
+        return '';
+    }
+    if (folder.specialUse === '\\Inbox' && /^inbox$/i.test(folder.name)) {
+        return 'Inbox';
+    }
+    return folder.name;
+}
+
+// What a reader counts as attachments: not the images that the HTML body shows in place
+// (EmailEngine marks those embedded)
+function listedAttachments(list) {
+    return (Array.isArray(list) ? list : []).filter(att => att && !att.embedded);
+}
+
+// An attachment's size in bytes. EmailEngine reports encodedSize, the length of the base64 the
+// file travels in, which is four thirds of the file; size is used when a backend gives it.
+function attachmentSize(att) {
+    if (att.size > 0) {
+        return att.size;
+    }
+    return att.encodedSize > 0 ? Math.floor((att.encodedSize * 3) / 4) : 0;
+}
+
+// A short type label for an attachment card: the extension, or the MIME subtype without one
+function attachmentType(att) {
+    const match = /\.([a-z0-9]{1,5})$/i.exec(att.filename || '');
+    if (match) {
+        return match[1].toUpperCase();
+    }
+    const subtype = String(att.contentType || '').split('/')[1] || '';
+    return /^[a-z0-9]{1,5}$/i.test(subtype) ? subtype.toUpperCase() : 'FILE';
+}
+
+// An attachment of a stored message as a compose attachment that references it by id
+function referenceAttachment(att) {
+    return { reference: att.id, filename: att.filename, contentType: att.contentType, size: attachmentSize(att) };
+}
+
+// One attachment of a submission or a draft upload: new content, or a reference to an
+// attachment of a stored message. A reference carries the name and type along, which the
+// server would otherwise replace with "attachment-1.*" and application/octet-stream.
+function attachmentPayload(att) {
+    if (att.reference) {
+        const entry = { reference: att.reference };
+        if (att.filename) {
+            entry.filename = att.filename;
+        }
+        if (att.contentType) {
+            entry.contentType = att.contentType;
+        }
+        return entry;
+    }
+    return { filename: att.filename, contentType: att.contentType, content: att.content };
+}
+
+// sendMessage, saveDraft and updateDraft take one message object since 2.0. A 1.x call
+// (to, subject, text, options) would otherwise send a message without its subject and text.
+function assertMessageObject(message, method) {
+    if (!message || typeof message !== 'object' || Array.isArray(message)) {
+        throw new TypeError(
+            `${method}() takes a message object, e.g. ${method}({ to, subject, text }). The (to, subject, text, options) form was removed in ee-client 2.0.`
+        );
+    }
+}
+
+// The HTML the compose editor keeps: what its toolbar makes, plus the quote structure of a
+// reopened draft. Anything else is unwrapped to its text (DROPPED_TAGS go with their content).
+const ALLOWED_TAGS = new Set(['P', 'DIV', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'A', 'BLOCKQUOTE']);
+const DROPPED_TAGS = new Set([
+    'SCRIPT',
+    'STYLE',
+    'TEMPLATE',
+    'IFRAME',
+    'OBJECT',
+    'EMBED',
+    'HEAD',
+    'TITLE',
+    'META',
+    'LINK',
+    'NOSCRIPT',
+    'TEXTAREA',
+    'SELECT',
+    'SVG',
+    'MATH'
+]);
+const SAFE_LINK = /^(?:https?:|mailto:)/i;
+
+/**
+ * Filters HTML down to the editor's allowlist: the tags above, no attributes except an
+ * http(s) or mailto href on links. The input is parsed in an inert document (no scripts run, no
+ * images load) and the output built element by element, so nothing of the input's markup is
+ * copied over as text.
+ *
+ * @param {string} html - untrusted HTML (pasted content, a stored draft)
+ * @returns {string} safe HTML for the editor
+ */
+function sanitizeEditorHtml(html) {
+    const source = new DOMParser().parseFromString(`<!doctype html><body>${String(html || '')}`, 'text/html');
+    const target = document.implementation.createHTMLDocument('');
+    const copy = (from, to) => {
+        for (const node of from.childNodes) {
+            if (node.nodeType === 3) {
+                to.appendChild(target.createTextNode(node.nodeValue));
+                continue;
+            }
+            if (node.nodeType !== 1 || DROPPED_TAGS.has(node.tagName.toUpperCase())) {
+                continue;
+            }
+            const tag = node.tagName.toUpperCase();
+            if (!ALLOWED_TAGS.has(tag)) {
+                copy(node, to);
+                continue;
+            }
+            const el = target.createElement(tag.toLowerCase());
+            if (tag === 'A') {
+                const href = (node.getAttribute('href') || '').trim();
+                if (SAFE_LINK.test(href)) {
+                    el.setAttribute('href', href);
+                }
+            }
+            copy(node, el);
+            to.appendChild(el);
+        }
+    };
+    copy(source.body, target.body);
+    return target.body.innerHTML;
+}
+
+const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'TABLE', 'TR', 'PRE']);
+
+// The text of a node's children: blocks on lines of their own, a blank line after a paragraph
+function blockText(node) {
+    let out = '';
+    const lineBreak = () => {
+        if (out && !out.endsWith('\n')) {
+            out += '\n';
+        }
+    };
+    for (const child of node.childNodes) {
+        if (child.nodeType === 3) {
+            out += child.nodeValue.replace(/\s+/g, ' ');
+            continue;
+        }
+        if (child.nodeType !== 1) {
+            continue;
+        }
+        const tag = child.tagName.toUpperCase();
+        if (tag === 'BR') {
+            out += '\n';
+        } else if (tag === 'BLOCKQUOTE') {
+            lineBreak();
+            out += `${trimLines(blockText(child))
+                .split('\n')
+                .map(line => `> ${line}`.trimEnd())
+                .join('\n')}\n`;
+        } else if (tag === 'UL' || tag === 'OL') {
+            lineBreak();
+            out += listText(child, tag === 'OL');
+        } else if (BLOCK_TAGS.has(tag)) {
+            lineBreak();
+            out += blockText(child);
+            lineBreak();
+            if (tag === 'P') {
+                out += '\n';
+            }
+        } else if (tag === 'A') {
+            const label = blockText(child);
+            const href = (child.getAttribute('href') || '').replace(/^mailto:/i, '');
+            out += href && href !== label.trim() ? `${label} (${href})` : label;
+        } else {
+            out += blockText(child);
+        }
+    }
+    return out;
+}
+
+// A list as "- item" or "1. item" lines; a nested list is indented under its item
+function listText(list, ordered) {
+    let out = '';
+    let index = 0;
+    for (const item of list.children) {
+        const marker = item.tagName.toUpperCase() === 'LI' ? (ordered ? `${++index}. ` : '- ') : '';
+        const lines = trimLines(blockText(item)).split('\n');
+        out += `${marker}${lines[0]}\n${lines
+            .slice(1)
+            .map(line => `   ${line}\n`)
+            .join('')}`;
+    }
+    return out;
+}
+
+function trimLines(text) {
+    return text
+        .split('\n')
+        .map(line => line.trim())
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+/**
+ * The plain-text alternative of the editor's HTML: blocks on lines of their own, list items
+ * marked "- " or "1. ", quotes prefixed "> " and links followed by their address.
+ *
+ * @param {Node} root
+ * @returns {string}
+ */
+function editorText(root) {
+    return trimLines(blockText(root));
+}
+
+// Puts the caret at the start of an editable element
+function placeCaretAtStart(el) {
+    const selection = window.getSelection();
+    if (!selection) {
+        return;
+    }
+    const range = document.createRange();
+    range.setStart(el, 0);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+// The threading headers of a stored draft, carried over when it is saved again or sent from the
+// compose form, so the reply it holds stays in its thread
+function threadingHeaders(msg) {
+    const headers = (msg && msg.headers) || {};
+    const first = value =>
+        String((Array.isArray(value) ? value[0] : value) || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    const result = {};
+    const inReplyTo = first(headers['in-reply-to']) || first(msg && msg.inReplyTo);
+    const references = first(headers.references);
+    if (inReplyTo) {
+        result['In-Reply-To'] = inReplyTo;
+    }
+    if (references) {
+        result.References = references;
+    }
+    return result;
+}
+
+// Plain text as editor HTML: escaped, one paragraph per blank-line separated block
+function textToEditorHtml(text) {
+    if (!text) {
+        return '';
+    }
+    return String(text)
+        .split(/\n{2,}/)
+        .map(block => `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+}
+
+// Default cap on the files attached in the compose form, in bytes. They travel base64 encoded
+// inside one JSON request, which grows them by a third, and most providers refuse a message
+// much larger than this anyway. Hosts that know their limit pass maxAttachmentSize.
+const DEFAULT_MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
+
+// What a compose form address has to look like before it is sent. Deliberately loose: the
+// server validates properly, this only catches a name typed without its address.
+const ADDRESS_PATTERN = /^[^\s@<>",;]+@[^\s@<>",;]+$/;
+
+// Splits an address field on commas and semicolons that are not inside a quoted name or an
+// angle-bracketed address, so "Doe, John" <john@example.com> stays one entry.
+function splitAddressField(value) {
+    const parts = [];
+    let current = '';
+    let quoted = false;
+    let bracketed = false;
+    for (let i = 0; i < value.length; i++) {
+        const chr = value[i];
+        if (chr === '\\' && quoted && i + 1 < value.length) {
+            current += chr + value[++i];
+            continue;
+        }
+        if (chr === '"' && !bracketed) {
+            quoted = !quoted;
+        } else if (chr === '<' && !quoted) {
+            bracketed = true;
+        } else if (chr === '>' && !quoted) {
+            bracketed = false;
+        } else if ((chr === ',' || chr === ';') && !quoted && !bracketed) {
+            parts.push(current);
+            current = '';
+            continue;
+        }
+        current += chr;
+    }
+    parts.push(current);
+    return parts.map(part => part.trim()).filter(Boolean);
+}
+
+function parseAddressEntry(entry) {
+    // "Name <address>": the address is between the last "<" and a closing ">" at the end.
+    // Found by index rather than a /^(.*)<([^>]*)>$/ match, which backtracks in quadratic
+    // time on a long run of "<" without the closing ">"
+    const open = entry.lastIndexOf('<');
+    if (open < 0 || !entry.endsWith('>') || entry.indexOf('>', open) !== entry.length - 1 || /[\n\r\u2028\u2029]/.test(entry.slice(0, open))) {
+        return { address: entry };
+    }
+    let name = entry.slice(0, open).trim();
+    if (name.length > 1 && name.startsWith('"') && name.endsWith('"')) {
+        name = name.slice(1, -1).replace(/\\(.)/g, '$1');
+    }
+    const address = entry.slice(open + 1, -1).trim();
+    return name ? { name, address } : { address };
+}
+
+// Adds "Re: " or "Fwd: " unless the subject already starts with that prefix, so a long
+// thread does not read "Re: Re: Re:"
+function prefixSubject(subject, prefix) {
+    const value = (subject || '').trim();
+    const pattern = prefix === 'Re' ? /^re\s*:/i : /^fwd?\s*:/i;
+    return pattern.test(value) ? value : `${prefix}: ${value}`.trim();
+}
+
+// Address entries that carry an address, from a list, a single entry or a bare address string.
+// The server can return name-only entries and a single object where a list is expected.
+function addressEntries(value) {
+    return (Array.isArray(value) ? value : value ? [value] : [])
+        .map(entry => (typeof entry === 'string' ? { address: entry } : entry))
+        .filter(entry => entry && typeof entry.address === 'string' && entry.address);
+}
+
+// Compose form titles, by mode
+const COMPOSE_TITLES = {
+    new: 'New message',
+    reply: 'Reply',
+    'reply-all': 'Reply all',
+    forward: 'Forward',
+    draft: 'Draft'
 };
 
 // Below this container width the UI shows one pane at a time and the compose button
@@ -112,10 +513,25 @@ export class EmailEngineClient {
 
         this.currentFolder = null;
         this.currentMessage = null;
+        // A message to open on startup instead of the inbox listing (a deep link). Its folder
+        // is listed next to it, so the reader lands where the message lives.
+        this.initialMessage = typeof options.message === 'string' && options.message ? options.message : null;
+        // Told whenever the open folder or message changes, so a host page can keep its address
+        // bar in step (see _notifyNavigate)
+        // Host callbacks (see _emit): navigation, so the host can keep its address bar in step, and
+        // the outcomes it may want to track - a message queued for delivery, a draft stored, and a
+        // request that failed, with what the client was doing at the time
+        for (const name of ['onNavigate', 'onMessageSent', 'onDraftSaved', 'onError']) {
+            this[name] = typeof options[name] === 'function' ? options[name] : null;
+        }
+        const maxAttachmentSize = Number(options.maxAttachmentSize);
+        this.maxAttachmentSize = maxAttachmentSize > 0 ? maxAttachmentSize : DEFAULT_MAX_ATTACHMENT_SIZE;
         this.folders = [];
         this.messages = [];
         this.nextPageCursor = null;
         this.prevPageCursor = null;
+        // Position of the listed page: { page (0-based), total } when the server reports them
+        this.listPosition = null;
 
         // Set once destroy() runs; guards async completions (loadFolders,
         // loadMessages, loadMessage) from re-rendering or scrolling into a
@@ -148,9 +564,9 @@ export class EmailEngineClient {
         const requestedPageSize = savedPageSize ? parseInt(savedPageSize, 10) : parseInt(options.pageSize, 10);
         this.pageSize = requestedPageSize > 0 ? requestedPageSize : 20;
 
-        if (this.container) {
-            this.init();
-        }
+        // Resolves once the first view has loaded: true when it did, false when its requests failed
+        // (the panes then show why). An API-only client has nothing to load.
+        this.ready = this.container ? this.init() : Promise.resolve(true);
 
         // Start keep-alive timer for sess_ tokens
         this._startKeepAliveTimer();
@@ -246,28 +662,38 @@ export class EmailEngineClient {
         return `${this._accountPath()}/attachment/${encodeURIComponent(attachmentId)}`;
     }
 
-    async loadFolders() {
+    // Stores the folder list without rendering or reporting anything
+    async _fetchFolders(counters = false) {
+        const data = await this.apiRequest('GET', `${this._accountPath()}/mailboxes${counters ? '?counters=true' : ''}`);
+        this.folders = data.mailboxes || [];
+        this._folderTreeCache = null;
+        return this.folders;
+    }
+
+    // counters adds each folder's message and unread counts, at the cost of a STATUS command per
+    // folder on IMAP. The UI shows them, so it asks by default; an API-only client asks when told to.
+    async loadFolders({ counters = !!this.container } = {}) {
         // Reset the pane to its loading state so a retry after a failure does not
         // keep showing the previous error while the new request is in flight.
         this._setPaneHtml('.ee-folder-tree', '<div class="ee-loading">Loading folders...</div>');
 
         try {
-            const data = await this.apiRequest('GET', `${this._accountPath()}/mailboxes`);
-            this.folders = data.mailboxes || [];
-            this._folderTreeCache = null;
+            await this._fetchFolders(counters);
             if (this.container) {
                 this.renderFolderList();
             }
             return this.folders;
         } catch (error) {
             console.error('Failed to load folders:', error);
+            this._reportError(error, 'loadFolders', 'Failed to load the folders');
             this._renderPaneError('.ee-folder-tree', 'Folders unavailable', error, () => this._loadInitialView());
             throw error;
         }
     }
 
+    // Loads and renders one page of a folder's message list. The open message stays open: it is
+    // the folder click (openFolder()) that closes it, while paging and refreshes keep it.
     async loadMessages(path, cursor = null) {
-        this._setView('list');
         this._setPaneHtml('.ee-message-list', `${this._messageListHeader(path)}<div class="ee-loading">Loading messages...</div>`);
 
         try {
@@ -281,15 +707,14 @@ export class EmailEngineClient {
             this.currentFolder = path;
             this.nextPageCursor = data.nextPageCursor || null;
             this.prevPageCursor = data.prevPageCursor || null;
-
-            // Clear active email selection when folder changes
-            this.currentMessage = null;
+            this.listPosition = Number.isInteger(data.page) && Number.isInteger(data.total) ? { page: data.page, total: data.total } : null;
 
             if (this.container) {
                 this.renderMessageList();
                 this.renderFolderList(); // Re-render to update active state
-                this.renderMessage(); // Clear message viewer
             }
+
+            this._notifyNavigate();
 
             return {
                 messages: this.messages,
@@ -298,6 +723,7 @@ export class EmailEngineClient {
             };
         } catch (error) {
             console.error('Failed to load messages:', error);
+            this._reportError(error, 'loadMessages', 'Failed to load the messages');
             this._renderPaneError(
                 '.ee-message-list',
                 'Messages unavailable',
@@ -307,6 +733,14 @@ export class EmailEngineClient {
             );
             throw error;
         }
+    }
+
+    // Switches to another folder: closes the open message and lists the folder
+    openFolder(path) {
+        this.currentMessage = null;
+        this.renderMessage();
+        this._setView('list');
+        return this.loadMessages(path);
     }
 
     async loadMessage(messageId) {
@@ -322,9 +756,13 @@ export class EmailEngineClient {
             this.currentMessage = data;
 
             this.currentMessage.unseen = false;
+            this._notifyNavigate();
 
             const msg = this.messages.find(m => m.id === messageId);
             if (msg) {
+                if (msg.unseen) {
+                    this._adjustUnseen(this.currentFolder, -1);
+                }
                 msg.unseen = false;
                 if (this.container) {
                     this.renderMessageList();
@@ -334,26 +772,38 @@ export class EmailEngineClient {
             if (this.container && !this._destroyed) {
                 this.renderMessage();
 
-                // Scroll to top of the email client container
-                this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                // Also scroll the window to ensure visibility
-                if (typeof window !== 'undefined') {
-                    const containerTop = this.container.getBoundingClientRect().top + window.pageYOffset;
-                    window.scrollTo({ top: containerTop, behavior: 'smooth' });
+                // The message opens at the top of the client: bring that into view when the
+                // page is scrolled past it (a long list on a phone), and leave the page alone
+                // otherwise. scrollIntoView honours the host's scroll-margin-top, which is how
+                // a page with a fixed header keeps the toolbar clear of it.
+                if (this.container.getBoundingClientRect().top < 0) {
+                    this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }
 
             return this.currentMessage;
         } catch (error) {
             console.error('Failed to load message:', error);
-            this._renderPaneError(
-                '.ee-message-viewer',
-                'Message unavailable',
-                error,
-                () => this._fireAndForget(this.loadMessage(messageId)),
-                this._messageToolbar()
-            );
+            this._reportError(error, 'loadMessage', 'Failed to load the message');
+            // A message that does not exist (deleted, moved, or a link with a mangled ID) is
+            // not worth retrying, and the API's validation text means nothing to a reader
+            if (error && (error.statusCode === 404 || error.statusCode === 400)) {
+                this._renderPaneError(
+                    '.ee-message-viewer',
+                    'Message not found',
+                    'It may have been moved or deleted, or the link to it is incomplete.',
+                    null,
+                    this._messageToolbar()
+                );
+            } else {
+                this._renderPaneError(
+                    '.ee-message-viewer',
+                    'Message unavailable',
+                    error,
+                    () => this._fireAndForget(this.loadMessage(messageId)),
+                    this._messageToolbar()
+                );
+            }
             throw error;
         }
     }
@@ -366,6 +816,9 @@ export class EmailEngineClient {
 
             const msg = this.messages.find(m => m.id === messageId);
             if (msg) {
+                if (msg.unseen === seen) {
+                    this._adjustUnseen(this.currentFolder, seen ? -1 : 1);
+                }
                 msg.unseen = !seen;
                 if (this.container) {
                     this.renderMessageList();
@@ -382,29 +835,47 @@ export class EmailEngineClient {
             return true;
         } catch (error) {
             console.error('Failed to update message flags:', error);
+            this._reportError(error, 'markAsRead', 'Failed to update the message flags');
             throw error;
+        }
+    }
+
+    // Takes a message that left the folder (deleted or moved) off the list, and out of the
+    // viewer when it was the open one
+    _dropMessage(messageId, targetPath = null) {
+        const dropped = this.messages.find(m => m.id === messageId);
+        if (dropped && dropped.unseen) {
+            this._adjustUnseen(this.currentFolder, -1);
+            if (targetPath) {
+                this._adjustUnseen(targetPath, 1);
+            }
+        }
+        this.messages = this.messages.filter(m => m.id !== messageId);
+        if (this.container) {
+            this.renderMessageList();
+        }
+
+        if (this.currentMessage && this.currentMessage.id === messageId) {
+            this.currentMessage = null;
+            if (this.container) {
+                this.renderMessage();
+            }
+            this._notifyNavigate();
         }
     }
 
     async deleteMessage(messageId) {
         try {
-            await this.apiRequest('DELETE', this._messagePath(messageId));
+            const response = await this.apiRequest('DELETE', this._messagePath(messageId));
 
-            this.messages = this.messages.filter(m => m.id !== messageId);
-            if (this.container) {
-                this.renderMessageList();
-            }
+            this._dropMessage(messageId);
 
-            if (this.currentMessage && this.currentMessage.id === messageId) {
-                this.currentMessage = null;
-                if (this.container) {
-                    this.renderMessage();
-                }
-            }
-
-            return true;
+            // { deleted, moved: { destination, message } } - moved is set when the message went
+            // to Trash instead of being removed
+            return response || { deleted: true };
         } catch (error) {
             console.error('Failed to delete message:', error);
+            this._reportError(error, 'delete', 'Failed to delete the message');
             throw error;
         }
     }
@@ -415,27 +886,14 @@ export class EmailEngineClient {
                 path: targetPath
             });
 
-            this.messages = this.messages.filter(m => m.id !== messageId);
-            if (this.container) {
-                this.renderMessageList();
-            }
-
-            if (this.currentMessage && this.currentMessage.id === messageId) {
-                this.currentMessage = null;
-                if (this.container) {
-                    this.renderMessage();
-                }
-            }
+            this._dropMessage(messageId, targetPath);
 
             return true;
         } catch (error) {
             console.error('Failed to move message:', error);
+            this._reportError(error, 'move', 'Failed to move the message');
             throw error;
         }
-    }
-
-    _normalizeRecipients(to) {
-        return Array.isArray(to) ? to.map(addr => (typeof addr === 'string' ? { address: addr } : addr)) : [typeof to === 'string' ? { address: to } : to];
     }
 
     // Account details (name, email address) fetched once and cached for the lifetime
@@ -447,26 +905,84 @@ export class EmailEngineClient {
         return this._accountInfo;
     }
 
-    async sendMessage(to, subject, text) {
-        try {
-            const messageData = {
-                to: this._normalizeRecipients(to),
-                subject,
-                text
-            };
+    // The address and content fields shared by a submission and a draft upload, from a message
+    // object (see sendMessage). Empty recipient lists and empty parts are left out.
+    _messagePayload(message) {
+        const { to, cc, bcc, subject, text, html, attachments, reference, headers } = message;
+        const data = {};
+        if (typeof subject === 'string') {
+            data.subject = subject;
+        }
+        if (typeof text === 'string') {
+            data.text = text;
+        }
+        if (typeof html === 'string' && html) {
+            data.html = html;
+        }
+        for (const [key, value] of [
+            ['to', to],
+            ['cc', cc],
+            ['bcc', bcc]
+        ]) {
+            const list = addressEntries(value);
+            if (list.length) {
+                data[key] = list;
+            }
+        }
+        if (Array.isArray(attachments) && attachments.length) {
+            data.attachments = attachments.map(attachmentPayload);
+        }
+        if (reference) {
+            data.reference = reference;
+        }
+        if (headers && typeof headers === 'object' && Object.keys(headers).length) {
+            data.headers = headers;
+        }
+        return data;
+    }
 
-            const response = await this.apiRequest('POST', `${this._accountPath()}/submit`, messageData);
+    /**
+     * Submits a message for delivery.
+     *
+     * @param {Object} message
+     * @param {string|Object|Object[]} message.to - "Name <address>", { name, address } or a list
+     * @param {string|Object|Object[]} [message.cc]
+     * @param {string|Object|Object[]} [message.bcc]
+     * @param {string} [message.subject]
+     * @param {string} [message.text] - the plain text part
+     * @param {string} [message.html] - the HTML part
+     * @param {Object[]} [message.attachments] - { filename, contentType, content (base64) }, or
+     *   { reference, filename, contentType } for an attachment of a stored message by its id
+     * @param {Object} [message.reference] - EmailEngine's reference block ({ message, action,
+     *   inline, forwardAttachments }); the server adds the threading headers and the quote
+     * @param {Object} [message.headers] - extra headers, e.g. In-Reply-To of a reopened draft
+     * @returns {Promise<Object>} the queue response ({ messageId, queueId, ... })
+     */
+    async sendMessage(message) {
+        assertMessageObject(message, 'sendMessage');
+        try {
+            const response = await this.apiRequest('POST', `${this._accountPath()}/submit`, this._messagePayload(message));
+            this._emit('onMessageSent', response);
             return response;
         } catch (error) {
             console.error('Failed to send message:', error);
+            this._reportError(error, 'send', 'Failed to send the message');
             throw error;
         }
     }
 
-    async saveDraft(to, subject, text) {
+    /**
+     * Stores a message in the Drafts folder. Takes the same message object as sendMessage.
+     *
+     * @param {Object} message
+     * @returns {Promise<Object>} the upload response ({ id, path, uid, ... })
+     */
+    async saveDraft(message) {
+        assertMessageObject(message, 'saveDraft');
         try {
             if (!this.folders.length) {
-                await this.loadFolders();
+                // only the Drafts path is needed; a failure is this save's own
+                await this._fetchFolders();
             }
             const draftsFolder = this.folders.find(f => f.specialUse === '\\Drafts');
             if (!draftsFolder) {
@@ -476,14 +992,8 @@ export class EmailEngineClient {
             const messageData = {
                 path: draftsFolder.path,
                 flags: ['\\Draft'],
-                subject,
-                text
+                ...this._messagePayload(message)
             };
-
-            const recipients = to ? this._normalizeRecipients(to) : [];
-            if (recipients.length) {
-                messageData.to = recipients;
-            }
 
             // The upload endpoint does not add a From header on its own, but the draft
             // needs one to be deliverable later - use the account's own identity.
@@ -497,19 +1007,147 @@ export class EmailEngineClient {
             }
 
             const response = await this.apiRequest('POST', `${this._accountPath()}/message`, messageData);
+            this._emit('onDraftSaved', response);
             return response;
         } catch (error) {
             console.error('Failed to save draft:', error);
+            this._reportError(error, 'saveDraft', 'Failed to save the draft');
             throw error;
         }
+    }
+
+    /**
+     * Replaces a stored draft with a new version. IMAP has no way to change a stored message, so
+     * the new version is saved first and the old one removed after; attachments the new version
+     * references from the old draft are copied before it goes.
+     *
+     * @param {string} messageId - the draft to replace
+     * @param {Object} message - the new version, as for sendMessage
+     * @returns {Promise<Object>} the upload response of the new version
+     */
+    async updateDraft(messageId, message) {
+        assertMessageObject(message, 'updateDraft');
+        const saved = await this.saveDraft(message);
+        await this._discardDraft(messageId);
+        return saved;
+    }
+
+    // Removes a draft for good (not to Trash: it is a superseded or sent copy). A failure is
+    // logged only; the newer version is already safe.
+    async _discardDraft(messageId) {
+        try {
+            await this.apiRequest('DELETE', this._messagePath(messageId, '?force=true'));
+        } catch (error) {
+            console.error('Failed to remove the previous draft:', error);
+        }
+    }
+
+    // Parses a typed address field ("Name <a@example.com>, b@example.com") into address entries
+    parseAddressList(value) {
+        return splitAddressField(String(value || '')).map(parseAddressEntry);
+    }
+
+    // The reverse of parseAddressList, for filling a compose field
+    formatAddressList(list) {
+        return addressEntries(list)
+            .map(entry => {
+                if (!entry.name) {
+                    return entry.address;
+                }
+                const name = /[",;<>@\\]/.test(entry.name) ? `"${entry.name.replace(/(["\\])/g, '\\$1')}"` : entry.name;
+                return `${name} <${entry.address}>`;
+            })
+            .join(', ');
+    }
+
+    // Recipients, subject and submit reference for a reply, reply-all or forward of msg, as the
+    // compose form shows them. ownAddress (the account's) is left out of the recipients.
+    //
+    // Reply-all is resolved here rather than by the server: EmailEngine's reply-all merges the
+    // original recipients into whatever is sent, so one the user removed from the form would be
+    // put back. It goes out as a reply with every recipient spelled out instead, which the server
+    // leaves alone, and what the form shows is what is sent.
+    prepareResponse(msg, action, ownAddress = null) {
+        if (action === 'forward') {
+            // The original's files travel as references, one per file, so each can be left out;
+            // forwardAttachments would carry all of them or none
+            const attachments = listedAttachments(msg.attachments).map(referenceAttachment);
+            return {
+                to: [],
+                cc: [],
+                subject: prefixSubject(msg.subject, 'Fwd'),
+                reference: { message: msg.id, action: 'forward', inline: true, forwardAttachments: false },
+                attachments
+            };
+        }
+
+        const own = typeof ownAddress === 'string' ? ownAddress.toLowerCase() : '';
+        const seen = new Set(own ? [own] : []);
+        const take = list =>
+            addressEntries(list)
+                .filter(entry => {
+                    const key = entry.address.toLowerCase();
+                    if (seen.has(key)) {
+                        return false;
+                    }
+                    seen.add(key);
+                    return true;
+                })
+                .map(entry => (entry.name ? { name: entry.name, address: entry.address } : { address: entry.address }));
+
+        // Answer the address the message nominates, otherwise its sender - or, for a message the
+        // account sent itself (Sent folder), the people it went to. The account's own address is
+        // never an answer, so a Reply-To naming the account falls through to the next candidate.
+        const fromSelf = !!own && addressEntries(msg.from).some(entry => entry.address.toLowerCase() === own);
+        let to = [];
+        for (const candidate of [msg.replyTo, fromSelf ? msg.to : msg.from]) {
+            to = take(candidate);
+            if (to.length) {
+                break;
+            }
+        }
+        if (!to.length) {
+            // A message from the account to itself: answer it anyway
+            to = addressEntries(msg.from).map(entry => ({ ...entry }));
+        }
+        const cc = action === 'reply-all' ? take(addressEntries(msg.to).concat(addressEntries(msg.cc))) : [];
+
+        return { to, cc, subject: prefixSubject(msg.subject, 'Re'), reference: { message: msg.id, action: 'reply', inline: true } };
+    }
+
+    // Calls a host callback by its option name. A host error must not break the client.
+    _emit(name, ...args) {
+        const handler = this[name];
+        if (typeof handler !== 'function' || this._destroyed) {
+            return;
+        }
+        try {
+            handler(...args);
+        } catch (error) {
+            console.error(`${name} handler failed:`, error);
+        }
+    }
+
+    // Tells the host which folder and message are open
+    _notifyNavigate() {
+        this._emit('onNavigate', { path: this.currentFolder, messageId: this.currentMessage ? this.currentMessage.id : null });
+    }
+
+    // Tells the host a request failed: action names what the client was doing ('loadFolders',
+    // 'loadMessages', 'loadMessage', 'markAsRead', 'delete', 'move', 'send', 'saveDraft' or
+    // 'download'), and description says it in words
+    _reportError(error, action, description) {
+        this._emit('onError', error, { action, description });
     }
 
     async submitDraft(messageId, options = null) {
         try {
             const response = await this.apiRequest('POST', this._messagePath(messageId, '/submit'), options);
+            this._emit('onMessageSent', response);
             return response;
         } catch (error) {
             console.error('Failed to submit draft:', error);
+            this._reportError(error, 'send', 'Failed to send the draft');
             throw error;
         }
     }
@@ -550,7 +1188,7 @@ export class EmailEngineClient {
                 // are needed - and to[N] for any index is handled, not just to[0].
                 .map(field =>
                     field.message
-                        .replace(/to\[\d+\]\.address|"address"/g, 'email address')
+                        .replace(/(?:to|cc|bcc)\[\d+\]\.address|"address"/g, 'email address')
                         .replace(/"subject"/g, 'subject')
                         .replace(/"text"/g, 'message')
                 );
@@ -595,8 +1233,9 @@ export class EmailEngineClient {
     // missing, optionally with a Retry button. Without this a failed request
     // leaves the pane stuck on its "Loading..." placeholder forever, with the
     // only trace of the failure in the developer console.
+    // error is the failed request's error, or a plain explanation to show instead
     _renderPaneError(selector, title, error, retry = null, header = '') {
-        const detail = this._errorMessage(error, '');
+        const detail = typeof error === 'string' ? error : this._errorMessage(error, '');
         const pane = this._setPaneHtml(
             selector,
             `
@@ -633,6 +1272,19 @@ export class EmailEngineClient {
         promise.catch(() => {});
     }
 
+    // A short notice at the bottom of the client that goes away on its own, for outcomes that
+    // need no answer (a message queued, a draft saved). Errors keep using alertMethod.
+    notify(message) {
+        const toast = this.container && this.container.querySelector('.ee-toast');
+        if (!toast || this._destroyed) {
+            return;
+        }
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
     // Message actions (flag, delete, move) have no pane of their own to report into:
     // when one fails the message simply stays put, which is indistinguishable from
     // nothing having happened. Say so instead.
@@ -649,15 +1301,14 @@ export class EmailEngineClient {
 
     // Header for every state of the message list pane, titled with the folder
     // being shown. In the single-pane layout its back button leads to the folders.
-    _messageListHeader(path, controls = '') {
+    _messageListHeader(path) {
         const folder = path && this.folders.find(f => f.path === path);
         return `
             <div class="ee-pane-header">
                 <div class="ee-pane-heading">
                     ${this._iconButton('show-folders', 'back', 'Folders', 'ee-nav-button')}
-                    <span class="ee-pane-title">${this.escapeHtml(folder ? folder.name : 'Messages')}</span>
+                    <span class="ee-pane-title">${this.escapeHtml(folder ? folderDisplayName(folder) : 'Messages')}</span>
                 </div>
-                ${controls}
             </div>
         `;
     }
@@ -698,12 +1349,37 @@ export class EmailEngineClient {
         const diff = now - date;
 
         if (diff < 86400000) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
         } else if (diff < 604800000) {
-            return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
-        } else {
+            return date.toLocaleDateString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        } else if (date.getFullYear() === now.getFullYear()) {
             return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
         }
+        return date.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // The date in the message header: weekday, date and time to the minute
+    formatFullDate(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+            return '';
+        }
+        return date.toLocaleString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    // Header addresses as escaped HTML: "Name <address>" with the address muted, the bare address
+    // when there is no name, and the name alone for a name-only entry
+    _addressListHtml(list) {
+        return (Array.isArray(list) ? list : list ? [list] : [])
+            .map(entry => (typeof entry === 'string' ? { address: entry } : entry))
+            .filter(entry => entry && (entry.name || entry.address))
+            .map(entry => {
+                if (entry.name && entry.address) {
+                    return `${this.escapeHtml(entry.name)} <span class="ee-address">&lt;${this.escapeHtml(entry.address)}&gt;</span>`;
+                }
+                return this.escapeHtml(entry.name || entry.address);
+            })
+            .join(', ');
     }
 
     formatFileSize(bytes) {
@@ -794,11 +1470,7 @@ export class EmailEngineClient {
     }
 
     escapeHtml(value) {
-        if (value === null || value === undefined) {
-            return '';
-        }
-        const htmlEscapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-        return String(value).replace(/[&<>"']/g, ch => htmlEscapes[ch]);
+        return escapeHtml(value);
     }
 
     _authHeaders() {
@@ -856,6 +1528,7 @@ export class EmailEngineClient {
             this._saveBlob(blob, filename);
         } catch (error) {
             console.error('Failed to download attachment:', error);
+            this._reportError(error, 'download', 'Failed to download the attachment');
             this.alertMethod(this._errorMessage(error, 'Failed to download attachment. Please try again.'), 'Download Error', null, 'OK');
         }
     }
@@ -876,6 +1549,7 @@ export class EmailEngineClient {
             this._saveBlob(blob, filename);
         } catch (error) {
             console.error('Failed to download original message:', error);
+            this._reportError(error, 'download', 'Failed to download the original message');
             this.alertMethod(this._errorMessage(error, 'Failed to download original message. Please try again.'), 'Download Error', null, 'OK');
         }
     }
@@ -898,6 +1572,18 @@ export class EmailEngineClient {
         }
 
         const style = this._createStyle(`
+            /* The accent comes from the host's --ee-accent, --ee-accent-hover and --ee-accent-light
+               (set on the container). They are resolved into private names once per root
+               element: setting --ee-accent itself here would hide the host's value. */
+            .ee-client,
+            .ee-compose-button,
+            .ee-compose,
+            .ee-toast {
+                --_accent: var(--ee-accent, #007bff);
+                --_accent-hover: var(--ee-accent-hover, #0056b3);
+                --_accent-light: var(--ee-accent-light, #66b2ff);
+            }
+
             .ee-client {
                 --ee-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 display: flex;
@@ -931,66 +1617,80 @@ export class EmailEngineClient {
             .ee-folder-list {
                 list-style: none;
                 margin: 0;
-                padding: 0;
+                padding: 6px 8px;
+                display: flex;
+                flex-direction: column;
+                gap: 1px;
             }
-            
+
             .ee-folder-item {
-                cursor: pointer;
-                border-bottom: 1px solid #e0e0e0;
                 position: relative;
             }
-            
-            .ee-folder-item:hover {
-                background: #e8e8e8;
-            }
-            
-            .ee-folder-item.active {
-                background: #007bff;
-                color: white;
-            }
-            
-            .ee-folder-item.active::before {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                width: 3px;
-                background: #0056b3;
-            }
-            
+
+            /* The whole row is the button */
             .ee-folder-content {
-                padding: 8px 16px 8px 0px;
                 display: flex;
                 align-items: center;
-                position: relative;
+                gap: 10px;
+                width: 100%;
+                min-height: 34px;
+                padding: 6px 10px 6px 12px;
+                border: none;
+                border-radius: 6px;
+                background: transparent;
+                color: inherit;
+                font: inherit;
+                text-align: left;
+                cursor: pointer;
             }
-            
-            .ee-folder-indent {
-                color: #999;
-                font-size: 12px;
-                margin-right: 4px;
-                font-family: monospace;
+
+            .ee-folder-content:hover {
+                background: #eef1f4;
             }
-            
-            .ee-folder-name {
-                font-weight: 500;
-                flex: 1;
+
+            .ee-folder-content:focus-visible,
+            .ee-message-item:focus-visible,
+            .ee-attachment-item:focus-visible {
+                outline: 2px solid var(--_accent);
+                outline-offset: -2px;
             }
-            
-            .ee-folder-name.has-children {
+
+            .ee-folder-item.active .ee-folder-content {
+                background: color-mix(in srgb, var(--_accent) 14%, white);
+                color: var(--_accent-hover);
                 font-weight: 600;
             }
-            
-            .ee-folder-item.active .ee-folder-indent {
-                color: rgba(255, 255, 255, 0.7);
-            }
-            
-            .ee-folder-count {
-                font-size: 12px;
-                opacity: 0.7;
-                margin-left: 8px;
+
+            .ee-folder-icon {
+                display: inline-flex;
                 flex-shrink: 0;
+                color: #6b7280;
+            }
+
+            .ee-folder-item.active .ee-folder-icon {
+                color: inherit;
+            }
+
+            .ee-folder-name {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .ee-folder-count {
+                flex-shrink: 0;
+                min-width: 20px;
+                padding: 0 6px;
+                border-radius: 10px;
+                background: var(--_accent);
+                color: white;
+                font-size: 11px;
+                font-weight: 600;
+                line-height: 18px;
+                text-align: center;
+                font-variant-numeric: tabular-nums;
             }
             
             .ee-main {
@@ -1009,49 +1709,76 @@ export class EmailEngineClient {
                 flex-direction: column;
             }
             
+            /* A list row is a button holding spans laid out as blocks */
             .ee-message-item {
-                padding: 12px 16px;
+                display: block;
+                width: 100%;
+                padding: 10px 16px 10px 24px;
+                border: none;
                 border-bottom: 1px solid #e0e0e0;
+                background: transparent;
+                color: inherit;
+                font: inherit;
+                text-align: left;
                 cursor: pointer;
+                position: relative;
             }
-            
+
             .ee-message-item:hover {
                 background: #f8f8f8;
             }
-            
+
             .ee-message-item.active {
-                background: #e3f2fd;
+                background: color-mix(in srgb, var(--_accent) 12%, white);
             }
-            
-            .ee-message-item.unread {
+
+            .ee-message-item.unread .ee-message-from,
+            .ee-message-item.unread .ee-message-subject-text {
                 font-weight: 600;
             }
-            
+
+            .ee-unread-dot {
+                position: absolute;
+                left: 9px;
+                top: 17px;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--_accent);
+            }
+
             .ee-message-header {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
             }
-            
+
             .ee-message-from {
                 flex: 1;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
-            
+
+            .ee-message-to-label {
+                color: #666;
+                font-weight: 400;
+            }
+
             .ee-message-date {
                 font-size: 12px;
                 color: #666;
                 flex-shrink: 0;
                 margin-left: 8px;
+                font-variant-numeric: tabular-nums;
             }
-            
+
             .ee-message-subject {
                 display: flex;
                 align-items: center;
-                margin-bottom: 2px;
+                color: #444;
             }
+
             
             .ee-message-subject-text {
                 overflow: hidden;
@@ -1062,6 +1789,8 @@ export class EmailEngineClient {
             }
             
             .ee-message-preview {
+                display: block;
+                margin-top: 2px;
                 font-size: 12px;
                 color: #666;
                 overflow: hidden;
@@ -1071,14 +1800,42 @@ export class EmailEngineClient {
             }
             
             .ee-attachment-indicator {
-                display: inline-block;
+                display: inline-flex;
+                align-items: center;
+                white-space: nowrap;
+                flex-shrink: 0;
                 font-size: 11px;
                 color: #666;
                 margin-left: 8px;
             }
             
-            .ee-attachment-indicator::before {
-                content: "📎 ";
+            .ee-attachment-indicator .ee-icon {
+                margin-right: 2px;
+            }
+
+            /* Replied / forwarded markers, from the message flags (see _responseMarkers) */
+            .ee-response-marker {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                color: #666;
+                margin-right: 6px;
+                flex-shrink: 0;
+            }
+
+            .ee-message-title-markers {
+                display: flex;
+                gap: 4px;
+                margin: -8px 0 12px;
+                font-size: 12px;
+            }
+
+            .ee-message-title-markers:empty {
+                display: none;
+            }
+
+            .ee-dark-mode .ee-response-marker {
+                color: #999;
             }
             
             .ee-message-viewer {
@@ -1134,7 +1891,7 @@ export class EmailEngineClient {
             .ee-button:focus-visible,
             .ee-move-button:focus-within,
             .ee-compose-button:focus-visible {
-                outline: 2px solid #4d9fff;
+                outline: 2px solid var(--_accent);
                 outline-offset: 1px;
             }
 
@@ -1164,13 +1921,13 @@ export class EmailEngineClient {
             }
 
             .ee-button-primary {
-                background: #007bff;
-                border-color: #007bff;
+                background: var(--_accent);
+                border-color: var(--_accent);
                 color: white;
             }
 
             .ee-button-primary:hover:not(:disabled) {
-                background: #0069d9;
+                background: var(--_accent-hover);
             }
 
             .ee-button-danger:hover:not(:disabled) {
@@ -1204,9 +1961,7 @@ export class EmailEngineClient {
             
             .ee-message-content {
                 flex: 1;
-                /* The bottom padding lets the end of the message scroll clear of
-                   the floating compose button */
-                padding: 20px 20px 88px;
+                padding: 20px;
                 overflow-y: auto;
             }
 
@@ -1238,7 +1993,7 @@ export class EmailEngineClient {
             .ee-otp {
                 margin-bottom: 16px;
                 padding: 14px 16px;
-                background: #eef3fb;
+                background: color-mix(in srgb, var(--_accent) 7%, white);
                 border-radius: 8px;
             }
 
@@ -1291,14 +2046,14 @@ export class EmailEngineClient {
                 height: 32px;
                 padding: 0 16px;
                 font-size: 13px;
-                background: #007bff;
-                border-color: #007bff;
+                background: var(--_accent);
+                border-color: var(--_accent);
                 color: white;
                 border-radius: 16px;
             }
 
             .ee-otp .ee-otp-copy:hover:not(:disabled) {
-                background: #0069d9;
+                background: var(--_accent-hover);
             }
 
             .ee-otp-status,
@@ -1327,39 +2082,69 @@ export class EmailEngineClient {
                 margin-bottom: 8px;
                 color: #333;
             }
-            
+
+            .ee-attachment-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 8px;
+            }
+
             .ee-attachment-item {
                 display: flex;
                 align-items: center;
-                padding: 8px;
-                margin-bottom: 4px;
-                background: #f8f8f8;
+                gap: 10px;
+                min-width: 0;
+                padding: 8px 10px;
+                background: #f8f9fa;
                 border: 1px solid #e0e0e0;
-                border-radius: 4px;
+                border-radius: 6px;
+                color: inherit;
+                font: inherit;
+                text-align: left;
                 cursor: pointer;
                 transition: background 0.2s;
             }
-            
+
             .ee-attachment-item:hover {
-                background: #f0f0f0;
+                background: #eef1f4;
             }
-            
-            .ee-attachment-icon {
-                margin-right: 8px;
-                font-size: 18px;
+
+            .ee-attachment-type {
+                flex-shrink: 0;
+                width: 38px;
+                padding: 6px 0;
+                border-radius: 4px;
+                background: color-mix(in srgb, var(--_accent) 12%, white);
+                color: var(--_accent-hover);
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.03em;
+                text-align: center;
             }
-            
+
             .ee-attachment-info {
+                display: flex;
+                flex-direction: column;
                 flex: 1;
+                min-width: 0;
             }
-            
+
             .ee-attachment-name {
                 font-weight: 500;
                 color: #333;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
-            
+
             .ee-attachment-size {
                 font-size: 12px;
+                color: #666;
+            }
+
+            .ee-attachment-download {
+                display: inline-flex;
+                flex-shrink: 0;
                 color: #666;
             }
             
@@ -1456,18 +2241,30 @@ export class EmailEngineClient {
                 overflow-y: auto;
             }
             
-            .ee-pagination-controls {
+            /* Paging, under the list: the position, the arrows and the page size */
+            .ee-list-footer {
                 display: flex;
-                gap: 6px;
                 align-items: center;
+                gap: 6px;
                 flex-shrink: 0;
+                padding: 6px 12px 6px 16px;
+                border-top: 1px solid #e0e0e0;
+                background: #f8f9fa;
             }
-            
+
+            .ee-list-range {
+                flex: 1;
+                font-size: 12px;
+                color: #666;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
             .ee-page-size-selector {
                 display: flex;
                 gap: 6px;
                 align-items: center;
-                margin-left: 4px;
+                margin-left: 6px;
             }
             
             .ee-page-size-label {
@@ -1482,7 +2279,6 @@ export class EmailEngineClient {
             .ee-message-items {
                 flex: 1;
                 overflow-y: auto;
-                padding-bottom: 88px;
             }
             
             .ee-compose-button {
@@ -1491,48 +2287,39 @@ export class EmailEngineClient {
                 right: 20px;
                 display: inline-flex;
                 align-items: center;
-                gap: 10px;
-                height: 52px;
-                padding: 0 22px 0 18px;
-                background: #007bff;
+                justify-content: center;
+                width: 56px;
+                height: 56px;
+                padding: 0;
+                background: var(--_accent);
                 border: none;
-                border-radius: 16px;
+                border-radius: 50%;
                 color: white;
-                font-family: var(--ee-font, inherit);
-                font-size: 15px;
-                font-weight: 600;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--_accent) 30%, transparent);
                 z-index: 1000;
                 transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
             }
             
-            .ee-compose-button:hover {
-                background: #0056b3;
-                transform: translateY(-1px);
-                box-shadow: 0 6px 16px rgba(0,123,255,0.4);
-            }
-
-            .ee-compose-button.ee-compose-compact {
-                width: 56px;
-                height: 56px;
-                padding: 0;
-                justify-content: center;
-                border-radius: 50%;
-            }
-
-            .ee-compose-compact .ee-compose-button-label {
+            /* An open message on a phone has its own reply actions; the button would cover the text */
+            .ee-client[data-view="message"] ~ .ee-compose-button {
                 display: none;
+            }
+
+            .ee-compose-button:hover {
+                background: var(--_accent-hover);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 16px color-mix(in srgb, var(--_accent) 40%, transparent);
             }
 
             /* Medium widths: the viewer is too narrow for labelled buttons, so the
                toolbar goes icon-only, as webmail toolbars usually are */
-            @container ee-viewer (max-width: 559px) {
-                .ee-message-actions .ee-button:not(.ee-keep-label) .ee-button-label {
+            @container ee-viewer (max-width: 699px) {
+                .ee-message-actions .ee-button:not(.ee-keep-label):not(.ee-label-priority) .ee-button-label {
                     display: none;
                 }
 
-                .ee-message-actions .ee-button:not(.ee-keep-label) {
+                .ee-message-actions .ee-button:not(.ee-keep-label):not(.ee-label-priority) {
                     width: 30px;
                     padding: 0;
                 }
@@ -1540,6 +2327,22 @@ export class EmailEngineClient {
                 .ee-message-actions .ee-move-button {
                     width: 44px;
                     gap: 2px;
+                }
+            }
+
+            /* Below this even the reply group goes icon-only */
+            @container ee-viewer (max-width: 439px) {
+                .ee-message-actions .ee-label-priority .ee-button-label {
+                    display: none;
+                }
+
+                .ee-message-actions .ee-label-priority {
+                    width: 30px;
+                    padding: 0;
+                }
+
+                .ee-toolbar-divider {
+                    display: none;
                 }
             }
 
@@ -1569,185 +2372,554 @@ export class EmailEngineClient {
                 .ee-message-content {
                     padding: 16px 16px 88px;
                 }
+
+                .ee-message-items {
+                    padding-bottom: 88px;
+                }
+
+                /* the floating button is the Compose button here */
+                .ee-sidebar-compose {
+                    display: none;
+                }
             }
             
-            .ee-compose-modal {
-                display: none;
+            /* Compose: a panel docked to the bottom right of the window, without a backdrop, so the
+               message being answered stays readable and the list stays usable. It fills the screen
+               on a phone. The outer element only positions the panel. */
+            .ee-compose {
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
+                right: 24px;
+                bottom: 0;
                 z-index: 2000;
-            }
-            
-            .ee-compose-modal.show {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .ee-compose-dialog {
-                background: white;
-                border-radius: 8px;
-                width: 90%;
-                max-width: 600px;
-                max-height: 80vh;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .ee-compose-header {
-                padding: 16px 20px;
-                border-bottom: 1px solid #e0e0e0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-shrink: 0;
-            }
-            
-            .ee-compose-title {
-                font-size: 18px;
-                font-weight: 600;
-                margin: 0;
-            }
-            
-            .ee-compose-close {
-                background: none;
-                border: none;
-                font-size: 24px;
-                color: #666;
-                cursor: pointer;
-                padding: 0;
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .ee-compose-close:hover {
-                background: #f0f0f0;
-            }
-            
-            .ee-compose-form {
-                padding: 20px;
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                flex: 1;
-                overflow-y: auto;
-            }
-            
-            .ee-compose-field {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-            
-            .ee-compose-label {
-                font-weight: 500;
+                font-family: var(--ee-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+                font-size: 14px;
+                line-height: 1.5;
                 color: #333;
             }
-            
-            .ee-compose-input {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                font-family: inherit;
+
+            .ee-compose * {
+                box-sizing: border-box;
             }
-            
-            .ee-compose-input:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
-            }
-            
-            .ee-compose-textarea {
-                padding: 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                font-family: inherit;
-                resize: vertical;
-                min-height: 200px;
-            }
-            
-            .ee-compose-textarea:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
-            }
-            
-            .ee-compose-actions {
-                padding: 16px 20px;
-                border-top: 1px solid #e0e0e0;
+
+            .ee-compose-dialog {
                 display: flex;
-                gap: 12px;
-                justify-content: flex-end;
-                flex-shrink: 0;
+                flex-direction: column;
+                width: min(600px, calc(100vw - 48px));
+                height: min(680px, calc(100vh - 32px));
+                background: white;
+                border: 1px solid #d5dbe3;
+                border-bottom: none;
+                border-radius: 10px 10px 0 0;
+                box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+                overflow: hidden;
             }
-            
-            .ee-compose-send {
-                background: #007bff;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
+
+            /* Minimizing is for the docked panel; on a phone the form is the whole screen */
+            @media (min-width: 701px) {
+                .ee-compose-dialog.minimized {
+                    width: 300px;
+                    height: auto;
+                }
+
+                .ee-compose-dialog.minimized > :not(.ee-compose-header) {
+                    display: none;
+                }
+
+                .ee-compose-dialog.minimized .ee-compose-header {
+                    cursor: pointer;
+                }
+            }
+
+            .ee-compose-window-button > span {
+                display: inline-flex;
+            }
+
+            .ee-compose-dialog:not(.minimized) .ee-when-minimized,
+            .ee-compose-dialog.minimized .ee-when-open {
+                display: none;
+            }
+
+            .ee-compose-header {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex-shrink: 0;
+                padding: 8px 8px 8px 16px;
+                background: #2b3440;
+                color: #fff;
+            }
+
+            .ee-compose-title {
+                flex: 1;
+                min-width: 0;
+                margin: 0;
                 font-size: 14px;
-                font-weight: 500;
+                font-weight: 600;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .ee-compose-window-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                padding: 0;
+                border: none;
+                border-radius: 6px;
+                background: transparent;
+                color: rgba(255, 255, 255, 0.85);
                 cursor: pointer;
             }
-            
-            .ee-compose-send:hover:not(:disabled) {
-                background: #0056b3;
+
+            .ee-compose-window-button:hover {
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
             }
-            
-            .ee-compose-send:disabled {
-                background: #6c757d;
+
+            .ee-compose-form {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 4px 16px 12px;
+            }
+
+            /* One line per header field, the label beside its input and a rule under it, as mail
+               clients lay out their compose headers */
+            .ee-compose-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                border-bottom: 1px solid #e5e8ec;
+            }
+
+            .ee-compose-label {
+                flex: 0 0 52px;
+                font-size: 13px;
+                color: #666;
+            }
+
+            .ee-compose-input {
+                flex: 1;
+                min-width: 0;
+                padding: 10px 0;
+                border: none;
+                background: transparent;
+                color: inherit;
+                font: inherit;
+            }
+
+            .ee-compose-input:focus {
+                outline: none;
+            }
+
+            .ee-compose-row:focus-within {
+                border-bottom-color: var(--_accent);
+            }
+
+            .ee-compose-row:has([aria-invalid="true"]) {
+                border-bottom-color: #dc3545;
+            }
+
+            .ee-compose-toolbar {
+                display: flex;
+                gap: 2px;
+                padding: 6px 0;
+                border-bottom: 1px solid #e5e8ec;
+            }
+
+            .ee-compose-format,
+            .ee-compose-icon-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                padding: 0;
+                border: none;
+                border-radius: 6px;
+                background: transparent;
+                color: #555;
+                cursor: pointer;
+            }
+
+            .ee-compose-format:hover,
+            .ee-compose-icon-button:hover {
+                background: #eef1f4;
+                color: #222;
+            }
+
+            .ee-compose-format[aria-pressed="true"] {
+                background: color-mix(in srgb, var(--_accent) 14%, white);
+                color: var(--_accent-hover);
+            }
+
+            .ee-compose-linkbar {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 0;
+                border-bottom: 1px solid #e5e8ec;
+            }
+
+            .ee-compose-linkbar .ee-compose-input {
+                padding: 6px 8px;
+                border: 1px solid #d5dbe3;
+                border-radius: 6px;
+            }
+
+            .ee-compose-small-button {
+                flex-shrink: 0;
+                padding: 6px 10px;
+                border: 1px solid #d5dbe3;
+                border-radius: 6px;
+                background: white;
+                color: inherit;
+                font: inherit;
+                font-size: 13px;
+                cursor: pointer;
+            }
+
+            .ee-compose-small-button:hover {
+                background: #eef1f4;
+            }
+
+            .ee-compose-editor {
+                position: relative;
+                flex: 1 0 auto;
+                min-height: 160px;
+                padding: 12px 0;
+                outline: none;
+                overflow-wrap: break-word;
+                cursor: text;
+            }
+
+            .ee-compose-editor.ee-empty::before {
+                content: attr(data-placeholder);
+                color: #999;
+                pointer-events: none;
+                position: absolute;
+            }
+
+            .ee-compose-editor p {
+                margin: 0 0 0.8em;
+            }
+
+            .ee-compose-editor blockquote {
+                margin: 0 0 0.8em 0.4em;
+                padding-left: 10px;
+                border-left: 2px solid #ccc;
+                color: #555;
+            }
+
+            .ee-compose-editor a {
+                color: var(--_accent);
+            }
+
+            .ee-compose-editor[aria-invalid="true"] {
+                box-shadow: inset 0 -2px 0 #dc3545;
+            }
+
+            /* Why the form did not go out, between the form and its buttons so it is on
+               screen however far the form is scrolled */
+            .ee-compose-error {
+                margin: 0 16px 8px;
+                padding: 8px 12px;
+                border: 1px solid #fcc;
+                border-radius: 6px;
+                background: #fee;
+                color: #c00;
+                font-size: 13px;
+                white-space: pre-line;
+                flex-shrink: 0;
+            }
+
+            .ee-compose-actions {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-shrink: 0;
+                padding: 10px 16px;
+                border-top: 1px solid #e5e8ec;
+            }
+
+
+            .ee-compose-send {
+                padding: 8px 22px;
+                border: none;
+                border-radius: 18px;
+                background: var(--_accent);
+                color: white;
+                font: inherit;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .ee-compose-send:hover:not(:disabled) {
+                background: var(--_accent-hover);
+            }
+
+            .ee-compose-send:disabled,
+            .ee-compose-save-draft:disabled {
                 cursor: not-allowed;
                 opacity: 0.6;
             }
-            
-            .ee-compose-cancel {
-                background: #6c757d;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-size: 14px;
-                cursor: pointer;
-            }
-
-            .ee-compose-cancel:hover {
-                background: #545b62;
-            }
 
             .ee-compose-save-draft {
-                background: transparent;
-                color: #007bff;
-                border: 1px solid #007bff;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 500;
+                margin-left: auto;
+                padding: 7px 14px;
+                border: 1px solid #d5dbe3;
+                border-radius: 18px;
+                background: white;
+                color: inherit;
+                font: inherit;
                 cursor: pointer;
             }
 
             .ee-compose-save-draft:hover:not(:disabled) {
-                background: #007bff;
-                color: white;
+                background: #eef1f4;
             }
 
-            .ee-compose-save-draft:disabled {
-                color: #6c757d;
-                border-color: #6c757d;
-                cursor: not-allowed;
-                opacity: 0.6;
+            .ee-compose-format:focus-visible,
+            .ee-compose-icon-button:focus-visible,
+            .ee-compose-window-button:focus-visible,
+            .ee-compose-send:focus-visible,
+            .ee-compose-save-draft:focus-visible,
+            .ee-compose-small-button:focus-visible,
+            .ee-compose-quote-toggle:focus-visible,
+            .ee-compose-chip-remove:focus-visible,
+            .ee-compose-link:focus-visible {
+                outline: 2px solid var(--_accent);
+                outline-offset: 1px;
+            }
+
+            /* On a phone the form is the whole screen; minimizing it makes no sense there */
+            @media (max-width: 700px) {
+                .ee-compose {
+                    inset: 0;
+                }
+
+                .ee-compose-dialog {
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    border-radius: 0;
+                }
+
+                .ee-compose [data-action="minimize"] {
+                    display: none;
+                }
+            }
+
+            .ee-sidebar-compose {
+                padding: 12px;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .ee-sidebar-compose-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+                height: 38px;
+                border: none;
+                border-radius: 6px;
+                background: var(--_accent);
+                color: white;
+                font: inherit;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .ee-sidebar-compose-button:hover {
+                background: var(--_accent-hover);
+            }
+
+            .ee-toolbar-divider {
+                width: 1px;
+                height: 20px;
+                margin: 0 4px;
+                background: #ddd;
+                flex-shrink: 0;
+            }
+
+            .ee-address {
+                color: #666;
+            }
+
+            /* A styled message on the light surface its colours were chosen for (see
+               _renderMessageBody); plain messages follow the theme */
+            .ee-dark-mode .ee-message-body[data-styled],
+            .ee-dark-mode .ee-compose-quote-body[data-styled] {
+                background: #ffffff;
+                color: #222;
+                padding: 12px;
+                border-radius: 6px;
+            }
+
+            .ee-toast {
+                position: fixed;
+                left: 50%;
+                bottom: 24px;
+                transform: translate(-50%, 16px);
+                max-width: calc(100vw - 32px);
+                padding: 10px 16px;
+                border-radius: 6px;
+                background: #323232;
+                color: #fff;
+                font-family: var(--ee-font, inherit);
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+                z-index: 2100;
+            }
+
+            .ee-toast.show {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+
+            .ee-toast.ee-dark-mode {
+                background: #e0e0e0;
+                color: #1a1a1a;
+            }
+
+            /* Parts of the compose form that come and go (Cc/Bcc, the link field, the quote) use
+               the hidden attribute, which a display rule would otherwise override */
+            .ee-compose [hidden],
+            .ee-compose[hidden] {
+                display: none !important;
+            }
+
+            .ee-compose-link {
+                flex-shrink: 0;
+                background: none;
+                border: none;
+                padding: 4px 0;
+                font: inherit;
+                font-size: 13px;
+                color: var(--_accent);
+                cursor: pointer;
+            }
+
+            .ee-compose-link:hover {
+                text-decoration: underline;
+            }
+
+            .ee-compose-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding-bottom: 10px;
+            }
+
+            .ee-compose-chips:empty {
+                display: none;
+            }
+
+            .ee-compose-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                max-width: 100%;
+                padding: 4px 4px 4px 10px;
+                border: 1px solid #ddd;
+                border-radius: 16px;
+                background: #f8f9fa;
+                font-size: 13px;
+            }
+
+            .ee-compose-chip-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                min-width: 0;
+            }
+
+            .ee-compose-chip-size {
+                color: #666;
+                flex-shrink: 0;
+            }
+
+            .ee-compose-chip-remove {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: none;
+                border-radius: 50%;
+                background: transparent;
+                color: #666;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+            .ee-compose-chip-remove:hover {
+                background: #e0e0e0;
+            }
+
+            /* The message being answered or forwarded, behind a "..." toggle */
+            .ee-compose-quote {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .ee-compose-quote-toggle {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 2px 10px 2px 6px;
+                border: 1px solid #d5dbe3;
+                border-radius: 12px;
+                background: #f3f5f7;
+                color: #555;
+                font: inherit;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+            .ee-compose-quote-toggle:hover {
+                background: #e8ecf0;
+            }
+
+            .ee-compose-quote-content {
+                align-self: stretch;
+                padding: 4px 0 4px 12px;
+                border-left: 2px solid #ccc;
+            }
+
+            .ee-forward-title {
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+
+            .ee-forward-row {
+                display: flex;
+                gap: 8px;
+                font-size: 13px;
+            }
+
+            .ee-forward-label {
+                flex: 0 0 56px;
+                color: #666;
+            }
+
+            .ee-compose-quote-header:not(:empty) {
+                margin-bottom: 12px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #e5e8ec;
             }
 
             /* Dark mode toggle button, in the Folders pane header */
@@ -1773,8 +2945,7 @@ export class EmailEngineClient {
             }
 
             .ee-dark-mode-icon {
-                font-size: 14px;
-                line-height: 1;
+                display: flex;
             }
 
             /* Dark mode styles */
@@ -1799,16 +2970,21 @@ export class EmailEngineClient {
                 border-color: #333;
             }
 
-            .ee-dark-mode .ee-folder-item {
-                border-color: #333;
-            }
-
-            .ee-dark-mode .ee-folder-item:hover {
+            .ee-dark-mode .ee-folder-content:hover {
                 background: #2a2a2a;
             }
 
-            .ee-dark-mode .ee-folder-item.active {
-                background: #0056b3;
+            .ee-dark-mode .ee-folder-item.active .ee-folder-content {
+                background: color-mix(in srgb, var(--_accent) 35%, #1a1a1a);
+                color: #fff;
+            }
+
+            .ee-dark-mode .ee-folder-icon {
+                color: #999;
+            }
+
+            .ee-dark-mode .ee-folder-count {
+                background: var(--_accent-hover);
             }
 
             .ee-dark-mode .ee-message-list {
@@ -1825,13 +3001,30 @@ export class EmailEngineClient {
             }
 
             .ee-dark-mode .ee-message-item.active {
-                background: #1a3d5c;
+                background: color-mix(in srgb, var(--_accent) 35%, #1a1a1a);
             }
 
             .ee-dark-mode .ee-message-date,
             .ee-dark-mode .ee-message-preview,
-            .ee-dark-mode .ee-attachment-indicator {
+            .ee-dark-mode .ee-message-to-label,
+            .ee-dark-mode .ee-attachment-indicator,
+            .ee-dark-mode .ee-list-range,
+            .ee-dark-mode .ee-attachment-download {
                 color: #999;
+            }
+
+            .ee-dark-mode .ee-message-subject {
+                color: #ccc;
+            }
+
+            .ee-dark-mode .ee-list-footer {
+                background: #252525;
+                border-color: #333;
+            }
+
+            .ee-dark-mode .ee-attachment-type {
+                background: color-mix(in srgb, var(--_accent) 30%, #1a1a1a);
+                color: #e0e0e0;
             }
 
             .ee-dark-mode .ee-pane-header {
@@ -1878,9 +3071,10 @@ export class EmailEngineClient {
             }
 
             .ee-dark-mode .ee-button-primary,
-            .ee-dark-mode .ee-button-primary:hover:not(:disabled) {
-                background: #0056b3;
-                border-color: #0056b3;
+            .ee-dark-mode .ee-button-primary:hover:not(:disabled),
+            .ee-dark-mode .ee-sidebar-compose-button {
+                background: var(--_accent-hover);
+                border-color: var(--_accent-hover);
                 color: white;
             }
 
@@ -1948,7 +3142,7 @@ export class EmailEngineClient {
             }
 
             .ee-dark-mode .ee-otp {
-                background: #23303f;
+                background: color-mix(in srgb, var(--_accent) 18%, #1a1a1a);
             }
 
             .ee-dark-mode .ee-otp-title {
@@ -1962,8 +3156,8 @@ export class EmailEngineClient {
             }
 
             .ee-dark-mode .ee-otp .ee-otp-copy {
-                background: #0056b3;
-                border-color: #0056b3;
+                background: var(--_accent-hover);
+                border-color: var(--_accent-hover);
                 color: white;
             }
 
@@ -1972,81 +3166,99 @@ export class EmailEngineClient {
                 color: #999;
             }
 
-            .ee-dark-mode .ee-pagination {
-                background: #252525;
-                border-color: #333;
-            }
-
-            /* The compose button and modal sit beside .ee-client, not inside it, so
+            /* The compose button and form sit beside .ee-client, not inside it, so
                setDarkMode puts the ee-dark-mode class on them directly */
             .ee-compose-button.ee-dark-mode {
-                background: #0056b3;
+                background: var(--_accent-hover);
                 color: white;
             }
 
-            .ee-compose-button.ee-dark-mode:hover {
-                background: #004a99;
-            }
-
-            .ee-compose-modal.ee-dark-mode {
-                background: rgba(0, 0, 0, 0.7);
-            }
-
-            .ee-dark-mode .ee-compose-dialog {
-                background: #202020;
+            .ee-compose.ee-dark-mode {
                 color: #e0e0e0;
             }
 
-            .ee-dark-mode .ee-compose-label {
-                color: #ccc;
+            .ee-compose.ee-dark-mode .ee-compose-dialog {
+                background: #202020;
+                border-color: #3a3a3a;
+                box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
             }
 
-            .ee-dark-mode .ee-compose-header {
-                background: linear-gradient(to bottom, #2a2a2a, #252525);
+            .ee-compose.ee-dark-mode .ee-compose-header {
+                background: #111;
+            }
+
+            .ee-compose.ee-dark-mode .ee-compose-row,
+            .ee-compose.ee-dark-mode .ee-compose-toolbar,
+            .ee-compose.ee-dark-mode .ee-compose-linkbar,
+            .ee-compose.ee-dark-mode .ee-compose-actions,
+            .ee-compose.ee-dark-mode .ee-compose-quote-header:not(:empty) {
                 border-color: #333;
             }
 
-            .ee-dark-mode .ee-compose-close {
+            .ee-compose.ee-dark-mode .ee-compose-label,
+            .ee-compose.ee-dark-mode .ee-forward-label,
+            .ee-compose.ee-dark-mode .ee-compose-chip-size,
+            .ee-compose.ee-dark-mode .ee-compose-chip-remove {
                 color: #999;
             }
 
-            .ee-dark-mode .ee-compose-close:hover {
+            .ee-compose.ee-dark-mode .ee-compose-format,
+            .ee-compose.ee-dark-mode .ee-compose-icon-button {
+                color: #bbb;
+            }
+
+            .ee-compose.ee-dark-mode .ee-compose-format:hover,
+            .ee-compose.ee-dark-mode .ee-compose-icon-button:hover,
+            .ee-compose.ee-dark-mode .ee-compose-small-button:hover,
+            .ee-compose.ee-dark-mode .ee-compose-save-draft:hover:not(:disabled),
+            .ee-compose.ee-dark-mode .ee-compose-chip-remove:hover,
+            .ee-compose.ee-dark-mode .ee-compose-quote-toggle:hover {
+                background: #333;
                 color: #fff;
             }
 
-            .ee-dark-mode .ee-compose-input,
-            .ee-dark-mode .ee-compose-textarea {
-                background: #1a1a1a;
+            .ee-compose.ee-dark-mode .ee-compose-format[aria-pressed="true"] {
+                background: color-mix(in srgb, var(--_accent) 35%, #1a1a1a);
+                color: #fff;
+            }
+
+            .ee-compose.ee-dark-mode .ee-compose-small-button,
+            .ee-compose.ee-dark-mode .ee-compose-save-draft,
+            .ee-compose.ee-dark-mode .ee-compose-chip,
+            .ee-compose.ee-dark-mode .ee-compose-quote-toggle,
+            .ee-compose.ee-dark-mode .ee-compose-linkbar .ee-compose-input {
+                background: #2a2a2a;
                 border-color: #444;
                 color: #e0e0e0;
             }
 
-            .ee-dark-mode .ee-compose-input:focus,
-            .ee-dark-mode .ee-compose-textarea:focus {
-                border-color: #0056b3;
-                box-shadow: 0 0 0 2px rgba(0,86,179,0.2);
+            .ee-compose.ee-dark-mode .ee-compose-editor blockquote,
+            .ee-compose.ee-dark-mode .ee-compose-quote-content {
+                border-color: #555;
+                color: #ccc;
             }
 
-            .ee-dark-mode .ee-compose-actions {
+            .ee-compose.ee-dark-mode .ee-compose-editor a,
+            .ee-compose.ee-dark-mode .ee-compose-link {
+                color: var(--_accent-light);
+            }
+
+            .ee-compose.ee-dark-mode .ee-compose-error {
+                background: #3a2222;
+                border-color: #5c3030;
+                color: #f0a5a5;
+            }
+
+            .ee-dark-mode .ee-sidebar-compose {
                 border-color: #333;
             }
 
-            .ee-dark-mode .ee-compose-cancel {
+            .ee-dark-mode .ee-toolbar-divider {
                 background: #444;
             }
 
-            .ee-dark-mode .ee-compose-cancel:hover {
-                background: #555;
-            }
-
-            .ee-dark-mode .ee-compose-save-draft {
-                color: #66b2ff;
-                border-color: #66b2ff;
-            }
-
-            .ee-dark-mode .ee-compose-save-draft:hover:not(:disabled) {
-                background: #66b2ff;
-                color: #1a1a1a;
+            .ee-dark-mode .ee-address {
+                color: #aaa;
             }
         `);
         document.head.appendChild(style);
@@ -2146,39 +3358,105 @@ export class EmailEngineClient {
             return;
         }
 
-        const sortedFolders = this.buildFolderTree();
-        // Precompute which paths are some folder's parent so the per-row
-        // has-children check is O(1) instead of scanning this.folders each time.
-        const parentPaths = new Set(this.folders.map(f => f.parentPath));
-
         const html = `
             <ul class="ee-folder-list">
-                ${sortedFolders
-                    .map(({ folder, depth }) => {
-                        const hasChildren = parentPaths.has(folder.path);
-                        return `
-                        <li class="ee-folder-item ${folder.path === this.currentFolder ? 'active' : ''}" 
-                            data-path="${this.escapeHtml(folder.path)}" 
-                            data-depth="${depth}">
-                            <div class="ee-folder-content" style="padding-left: ${8 + depth * 12}px;">
-                                ${depth > 0 ? '<span class="ee-folder-indent">└ </span>' : ''}
-                                <span class="ee-folder-name ${hasChildren ? 'has-children' : ''}">${this.escapeHtml(folder.name)}</span>
-                                ${folder.status && folder.status.messages > 0 ? `<span class="ee-folder-count">${folder.status.messages}</span>` : ''}
-                            </div>
-                        </li>
-                    `;
-                    })
+                ${this.buildFolderTree()
+                    .map(({ folder, depth }) => this._folderItemHtml(folder, depth))
                     .join('')}
             </ul>
         `;
         folderTree.innerHTML = html;
+    }
 
-        folderTree.querySelectorAll('.ee-folder-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const path = item.getAttribute('data-path');
-                this._fireAndForget(this.loadMessages(path));
-            });
-        });
+    // One folder row: an icon by special use, the name, and the unread count. The row is a button,
+    // so the folders can be reached and opened from the keyboard.
+    _folderItemHtml(folder, depth) {
+        const active = folder.path === this.currentFolder;
+        const unseen = folder.status && folder.status.unseen > 0 ? folder.status.unseen : 0;
+        const name = folderDisplayName(folder);
+        const label = unseen ? `${name}, ${unseen} unread` : name;
+        return `
+            <li class="ee-folder-item${active ? ' active' : ''}" data-path="${this.escapeHtml(folder.path)}" data-depth="${depth}">
+                <button type="button" class="ee-folder-content" style="padding-left: ${12 + depth * 16}px;" aria-label="${this.escapeHtml(label)}"${active ? ' aria-current="true"' : ''}>
+                    <span class="ee-folder-icon">${icon(FOLDER_ICONS[folder.specialUse] || 'folder', 16)}</span>
+                    <span class="ee-folder-name">${this.escapeHtml(name)}</span>
+                    ${unseen ? `<span class="ee-folder-count">${unseen}</span>` : ''}
+                </button>
+            </li>
+        `;
+    }
+
+    // Keeps a folder's unread count in step with a read state the client changed itself, so the
+    // badge does not wait for the next folder listing
+    _adjustUnseen(path, delta) {
+        const folder = this.folders.find(f => f.path === path);
+        if (!folder || !folder.status || typeof folder.status.unseen !== 'number') {
+            return;
+        }
+        folder.status.unseen = Math.max(0, folder.status.unseen + delta);
+        this.renderFolderList();
+    }
+
+    // Folders whose messages the account sent itself: the list names the recipients instead
+    _isOutgoingFolder(path) {
+        const folder = this.folders.find(f => f.path === path);
+        return !!folder && (folder.specialUse === '\\Sent' || folder.specialUse === '\\Drafts');
+    }
+
+    // The correspondent column of a list row: the sender, or "To: ..." in Sent and Drafts
+    _correspondentHtml(msg, outgoing) {
+        if (outgoing) {
+            const names = addressEntries(msg.to)
+                .concat(addressEntries(msg.cc))
+                .map(entry => entry.name || entry.address);
+            return names.length ? `<span class="ee-message-to-label">To:</span> ${this.escapeHtml(names.join(', '))}` : '(no recipients)';
+        }
+        return this.escapeHtml(msg.from ? msg.from.name || msg.from.address : 'Unknown');
+    }
+
+    _messageItemHtml(msg, outgoing) {
+        const active = msg.id === (this.currentMessage && this.currentMessage.id);
+        const attachments = listedAttachments(msg.attachments).length;
+        const status = msg.unseen ? '<span class="ee-unread-dot" role="img" aria-label="Unread"></span>' : '';
+        return `
+            <button type="button" class="ee-message-item${msg.unseen ? ' unread' : ''}${active ? ' active' : ''}" data-id="${this.escapeHtml(msg.id)}"${active ? ' aria-current="true"' : ''}>
+                <span class="ee-message-header">
+                    ${status}
+                    <span class="ee-message-from">${this._correspondentHtml(msg, outgoing)}</span>
+                    <span class="ee-message-date">${this.formatDate(msg.date)}</span>
+                </span>
+                <span class="ee-message-subject">
+                    ${this._responseMarkers(msg)}
+                    <span class="ee-message-subject-text">${this.escapeHtml(msg.subject || '(no subject)')}</span>
+                    ${attachments ? `<span class="ee-attachment-indicator" role="img" aria-label="${attachments} attachments" title="Attachments">${icon('paperclip', 12)}${attachments}</span>` : ''}
+                </span>
+                ${msg.intro ? `<span class="ee-message-preview">${this.escapeHtml(msg.intro)}</span>` : ''}
+            </button>
+        `;
+    }
+
+    // The bottom bar of the message list: where the page sits in the folder, the page arrows
+    // and the page size
+    _messageListFooter() {
+        const count = this.messages.length;
+        let range = '';
+        if (this.listPosition && count) {
+            const first = this.listPosition.page * this.pageSize + 1;
+            range = `${first}-${first + count - 1} of ${this.listPosition.total}`;
+        }
+        const hasPagination = this.nextPageCursor || this.prevPageCursor;
+        return `
+            <div class="ee-list-footer">
+                <span class="ee-list-range">${range}</span>
+                ${hasPagination ? this._iconButton('prev-page', 'back', 'Previous page', '', !this.prevPageCursor) + this._iconButton('next-page', 'next', 'Next page', '', !this.nextPageCursor) : ''}
+                <label class="ee-page-size-selector" title="Messages per page">
+                    <span class="ee-page-size-label">Per page</span>
+                    <select class="ee-button ee-page-size-select" data-action="page-size">
+                        ${[10, 20, 30, 50, 100].map(size => `<option value="${size}"${this.pageSize === size ? ' selected' : ''}>${size}</option>`).join('')}
+                    </select>
+                </label>
+            </div>
+        `;
     }
 
     renderMessageList() {
@@ -2192,60 +3470,18 @@ export class EmailEngineClient {
         }
 
         if (!this.messages.length) {
-            messageList.innerHTML = `${this._messageListHeader(this.currentFolder)}<div class="ee-empty-state">No messages</div>`;
+            messageList.innerHTML = `${this._messageListHeader(this.currentFolder)}<div class="ee-empty-state">No messages in this folder</div>`;
             return;
         }
 
-        const hasPagination = this.nextPageCursor || this.prevPageCursor;
-
-        // Both arrows stay in place once there is more than one page, the unavailable
-        // one disabled, so the controls do not shift under the pointer between pages
-        const controls = `
-                <div class="ee-pagination-controls">
-                    ${
-                        hasPagination
-                            ? `
-                        ${this._iconButton('prev-page', 'back', 'Previous page', '', !this.prevPageCursor)}
-                        ${this._iconButton('next-page', 'next', 'Next page', '', !this.nextPageCursor)}
-                    `
-                            : ''
-                    }
-                    <label class="ee-page-size-selector" title="Messages per page">
-                        <span class="ee-page-size-label">Show</span>
-                        <select class="ee-button ee-page-size-select" data-action="page-size">
-                            <option value="10" ${this.pageSize === 10 ? 'selected' : ''}>10</option>
-                            <option value="20" ${this.pageSize === 20 ? 'selected' : ''}>20</option>
-                            <option value="30" ${this.pageSize === 30 ? 'selected' : ''}>30</option>
-                            <option value="50" ${this.pageSize === 50 ? 'selected' : ''}>50</option>
-                            <option value="100" ${this.pageSize === 100 ? 'selected' : ''}>100</option>
-                        </select>
-                    </label>
-                </div>
-        `;
-
-        const html = `
-            ${this._messageListHeader(this.currentFolder, controls)}
+        const outgoing = this._isOutgoingFolder(this.currentFolder);
+        messageList.innerHTML = `
+            ${this._messageListHeader(this.currentFolder)}
             <div class="ee-message-items">
-                ${this.messages
-                    .map(
-                        msg => `
-                    <div class="ee-message-item ${msg.unseen ? 'unread' : ''} ${msg.id === (this.currentMessage && this.currentMessage.id) ? 'active' : ''}" data-id="${this.escapeHtml(msg.id)}">
-                        <div class="ee-message-header">
-                            <span class="ee-message-from">${this.escapeHtml(msg.from ? msg.from.name || msg.from.address : 'Unknown')}</span>
-                            <span class="ee-message-date">${this.formatDate(msg.date)}</span>
-                        </div>
-                        <div class="ee-message-subject">
-                            <span class="ee-message-subject-text">${this.escapeHtml(msg.subject || '(no subject)')}</span>
-                            ${msg.attachments && msg.attachments.length > 0 ? `<span class="ee-attachment-indicator">${msg.attachments.length}</span>` : ''}
-                        </div>
-                        <div class="ee-message-preview">${this.escapeHtml(msg.intro || '')}</div>
-                    </div>
-                `
-                    )
-                    .join('')}
+                ${this.messages.map(msg => this._messageItemHtml(msg, outgoing)).join('')}
             </div>
+            ${this._messageListFooter()}
         `;
-        messageList.innerHTML = html;
 
         messageList.querySelectorAll('.ee-message-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -2306,8 +3542,14 @@ export class EmailEngineClient {
         // query); aria-label and title carry the full name either way. The move control
         // is a native select laid invisibly over a button so it looks like the rest of
         // the toolbar while keeping the platform's own folder picker.
+        const respond = isDraft
+            ? ''
+            : `${this._toolbarButton('reply', 'reply', 'Reply', 'Reply to the sender', 'ee-label-priority')}
+                ${addressEntries(msg.to).length + addressEntries(msg.cc).length > 1 ? this._toolbarButton('reply-all', 'replyAll', 'Reply all', 'Reply to everyone', 'ee-label-priority') : ''}
+                ${this._toolbarButton('forward', 'forward', 'Forward', 'Forward this message', 'ee-label-priority')}
+                <span class="ee-toolbar-divider"></span>`;
         const actions = `
-                ${isDraft ? this._toolbarButton('send-draft', 'send', 'Send draft', 'Send this draft now', 'ee-button-primary ee-keep-label') : ''}
+                ${isDraft ? this._toolbarButton('edit-draft', 'compose', 'Edit', 'Continue writing this draft', 'ee-button-primary ee-keep-label') + this._toolbarButton('send-draft', 'send', 'Send draft', 'Send this draft as it is', 'ee-label-priority') : respond}
                 ${this._toolbarButton('toggle-read', isUnseen ? 'mailOpen' : 'mail', isUnseen ? 'Mark read' : 'Mark unread', isUnseen ? 'Mark as read' : 'Mark as unread')}
                 <span class="ee-button ee-move-button" title="Move to folder">
                     ${icon('move')}<span class="ee-button-label">Move</span>${icon('chevronDown', 12)}
@@ -2330,54 +3572,34 @@ export class EmailEngineClient {
             ${this._messageToolbar(actions)}
             <div class="ee-message-content">
                 <h2 class="ee-message-title">${this.escapeHtml(msg.subject || '(no subject)')}</h2>
+                <div class="ee-message-title-markers">${this._responseMarkers(msg, true)}</div>
                 <div class="ee-message-meta">
                     <div class="ee-message-meta-row">
                         <span class="ee-message-meta-label">From</span>
-                        <span class="ee-message-meta-value">${msg.from ? `${this.escapeHtml(msg.from.name || '')} &lt;${this.escapeHtml(msg.from.address)}&gt;` : 'Unknown'}</span>
+                        <span class="ee-message-meta-value">${this._addressListHtml(msg.from) || 'Unknown'}</span>
                     </div>
                     <div class="ee-message-meta-row">
                         <span class="ee-message-meta-label">To</span>
-                        <span class="ee-message-meta-value">${msg.to ? msg.to.map(t => `${this.escapeHtml(t.name || '')} &lt;${this.escapeHtml(t.address)}&gt;`).join(', ') : ''}</span>
+                        <span class="ee-message-meta-value">${this._addressListHtml(msg.to)}</span>
                     </div>
                     ${
                         msg.cc && msg.cc.length
                             ? `
                         <div class="ee-message-meta-row">
                             <span class="ee-message-meta-label">Cc</span>
-                            <span class="ee-message-meta-value">${msg.cc.map(c => `${this.escapeHtml(c.name || '')} &lt;${this.escapeHtml(c.address)}&gt;`).join(', ')}</span>
+                            <span class="ee-message-meta-value">${this._addressListHtml(msg.cc)}</span>
                         </div>
                     `
                             : ''
                     }
                     <div class="ee-message-meta-row">
                         <span class="ee-message-meta-label">Date</span>
-                        <span class="ee-message-meta-value">${this.escapeHtml(new Date(msg.date).toLocaleString())}</span>
+                        <span class="ee-message-meta-value">${this.escapeHtml(this.formatFullDate(msg.date))}</span>
                     </div>
                 </div>
                 ${this.renderOtpBox(msg.otp)}
                 <div class="ee-message-body"></div>
-                ${
-                    msg.attachments && msg.attachments.length > 0
-                        ? `
-                    <div class="ee-attachments">
-                        <div class="ee-attachments-title">Attachments (${msg.attachments.length})</div>
-                        ${msg.attachments
-                            .map(
-                                att => `
-                            <div class="ee-attachment-item" data-attachment-id="${this.escapeHtml(att.id)}">
-                                <div class="ee-attachment-icon">📎</div>
-                                <div class="ee-attachment-info">
-                                    <div class="ee-attachment-name">${this.escapeHtml(att.filename || 'Unnamed attachment')}</div>
-                                    ${att.size ? `<div class="ee-attachment-size">${this.formatFileSize(att.size)}</div>` : ''}
-                                </div>
-                            </div>
-                        `
-                            )
-                            .join('')}
-                    </div>
-                `
-                        : ''
-                }
+                ${this._attachmentsHtml(listedAttachments(msg.attachments))}
             </div>
         `;
         viewer.innerHTML = html;
@@ -2406,11 +3628,11 @@ export class EmailEngineClient {
 
                 try {
                     await this.submitDraft(msg.id);
-                    await this.alertMethod('Draft queued for delivery.', 'Success', null, 'OK');
+                    this.notify('Draft queued for delivery.');
                     // Refresh the folder view - the provider removes the draft once it is sent,
                     // immediately for Gmail and MS Graph, after SMTP delivery for IMAP accounts.
                     if (!this._destroyed && this.currentFolder) {
-                        await this.loadMessages(this.currentFolder);
+                        await this.openFolder(this.currentFolder);
                     }
                 } catch (error) {
                     console.error('Failed to send draft:', error);
@@ -2422,20 +3644,33 @@ export class EmailEngineClient {
             });
         }
 
+        const editDraftButton = viewer.querySelector('[data-action="edit-draft"]');
+        if (editDraftButton) {
+            editDraftButton.addEventListener('click', () => {
+                this.editDraft(msg.id).catch(error => this._alertActionFailed(error, 'Failed to open the draft'));
+            });
+        }
+
+        viewer.querySelectorAll('[data-action="reply"], [data-action="reply-all"], [data-action="forward"]').forEach(button => {
+            button.addEventListener('click', () => {
+                this._respond(msg.id, button.dataset.action).catch(error => this._alertActionFailed(error, 'Failed to open the compose form'));
+            });
+        });
+
         viewer.querySelector('[data-action="toggle-read"]').addEventListener('click', () => {
             const currentlyUnseen = msg.unseen;
             this.markAsRead(msg.id, currentlyUnseen).catch(error => this._alertActionFailed(error, 'Failed to update the message flags'));
         });
 
         viewer.querySelector('[data-action="delete"]').addEventListener('click', async () => {
-            const result = await this.confirmMethod(
-                'Are you sure you want to delete this message? This action cannot be undone.',
-                'Delete Message',
-                'Cancel',
-                'Delete'
-            );
+            // Whether a delete moves the message to Trash or removes it depends on the backend
+            // and the folder (IMAP removes it from Trash and Junk, Gmail always moves it), so the
+            // question makes no promise and the notice reports what the server did
+            const result = await this.confirmMethod('Delete this message?', 'Delete Message', 'Cancel', 'Delete');
             if (result) {
-                this.deleteMessage(msg.id).catch(error => this._alertActionFailed(error, 'Failed to delete the message'));
+                this.deleteMessage(msg.id)
+                    .then(response => this.notify(response && response.moved ? 'Message moved to Trash.' : 'Message deleted.'))
+                    .catch(error => this._alertActionFailed(error, 'Failed to delete the message'));
             }
         });
 
@@ -2482,6 +3717,55 @@ export class EmailEngineClient {
         // Message content scrolling is now handled in loadMessage method
     }
 
+    // The attachments of the open message as download cards: a type label, the name and the size
+    _attachmentsHtml(attachments) {
+        if (!attachments.length) {
+            return '';
+        }
+        const cards = attachments
+            .map(att => {
+                const name = att.filename || 'Unnamed attachment';
+                const size = attachmentSize(att);
+                return `
+                    <button type="button" class="ee-attachment-item" data-attachment-id="${this.escapeHtml(att.id)}" aria-label="Download ${this.escapeHtml(name)}" title="Download ${this.escapeHtml(name)}">
+                        <span class="ee-attachment-type">${this.escapeHtml(attachmentType(att))}</span>
+                        <span class="ee-attachment-info">
+                            <span class="ee-attachment-name">${this.escapeHtml(name)}</span>
+                            ${size ? `<span class="ee-attachment-size">${this.formatFileSize(size)}</span>` : ''}
+                        </span>
+                        <span class="ee-attachment-download">${icon('download', 16)}</span>
+                    </button>`;
+            })
+            .join('');
+        return `
+            <div class="ee-attachments">
+                <div class="ee-attachments-title">${attachments.length === 1 ? '1 attachment' : `${attachments.length} attachments`}</div>
+                <div class="ee-attachment-grid">${cards}</div>
+            </div>
+        `;
+    }
+
+    // Replied / forwarded markers from the flags the server sets on the original once a reply or
+    // forward has been delivered (IMAP accounts; Gmail API and MS Graph report neither flag).
+    // labelled shows the words next to the icons, otherwise they are the accessible name only.
+    //
+    // EmailEngine adds \Answered to a forwarded message as well as $Forwarded, so one marker is
+    // shown: Forwarded when that flag is set, Replied otherwise.
+    _responseMarkers(msg, labelled = false) {
+        const flags = Array.isArray(msg.flags) ? msg.flags : [];
+        const marker = flags.includes('$Forwarded')
+            ? { icon: 'forward', label: 'Forwarded' }
+            : flags.includes('\\Answered')
+              ? { icon: 'reply', label: 'Replied' }
+              : null;
+        if (!marker) {
+            return '';
+        }
+        return labelled
+            ? `<span class="ee-response-marker">${icon(marker.icon, 12)}<span>${marker.label}</span></span>`
+            : `<span class="ee-response-marker" role="img" aria-label="${marker.label}" title="${marker.label}">${icon(marker.icon, 12)}</span>`;
+    }
+
     // An icon-only button. Static arguments only, never message data.
     _iconButton(action, iconName, label, extraClass = '', disabled = false) {
         return `<button type="button" class="ee-button ee-icon-button ${extraClass}" data-action="${action}" aria-label="${label}" title="${label}"${disabled ? ' disabled' : ''}>${icon(iconName)}</button>`;
@@ -2513,6 +3797,22 @@ export class EmailEngineClient {
         }
 
         root.replaceChildren(style, content);
+        // A message that had no HTML of its own: EmailEngine's conversion sets a small fixed font,
+        // and the plain-text rule lets it read at the size of the rest of the client
+        const encodedSize = msg.text && msg.text.encodedSize;
+        if (encodedSize && encodedSize.plain && !encodedSize.html) {
+            content.dataset.plain = 'true';
+        }
+        // A message that sets its own colours or backgrounds was designed for a light page;
+        // in dark mode its dark text would land on a dark background, or the client's light
+        // text on its white tables, so it is shown on a light surface instead (see the
+        // [data-styled] rule). A plain message has none and follows the theme.
+        const styled = Array.from(content.querySelectorAll('[style], [bgcolor], [color]')).some(
+            el => el.hasAttribute('bgcolor') || el.hasAttribute('color') || el.style.color || el.style.backgroundColor || el.style.backgroundImage
+        );
+        if (styled) {
+            host.dataset.styled = 'true';
+        }
         return root;
     }
 
@@ -2548,45 +3848,87 @@ export class EmailEngineClient {
                         ${
                             this.showDarkModeToggle
                                 ? `<button type="button" class="ee-dark-mode-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
-                            <span class="ee-dark-mode-icon">${this.darkMode ? '☀️' : '🌙'}</span>
+                            <span class="ee-dark-mode-icon">${icon(this.darkMode ? 'sun' : 'moon', 14)}</span>
                         </button>`
                                 : ''
                         }
+                    </div>
+                    <div class="ee-sidebar-compose">
+                        <button type="button" class="ee-sidebar-compose-button" data-action="compose">${icon('compose', 16)}<span>Compose</span></button>
                     </div>
                     <div class="ee-folder-tree"></div>
                 </div>
                 <div class="ee-message-list">${this._messageListPlaceholder()}</div>
                 <div class="ee-message-viewer">${this._messageViewerPlaceholder()}</div>
             </div>
-            <button type="button" class="ee-compose-button${this.darkMode ? ' ee-dark-mode' : ''}" title="Compose email" aria-label="Compose">${icon('compose', 22)}<span class="ee-compose-button-label">Compose</span></button>
-            <div class="ee-compose-modal${this.darkMode ? ' ee-dark-mode' : ''}">
-                <div class="ee-compose-dialog">
+            <button type="button" class="ee-compose-button${this.darkMode ? ' ee-dark-mode' : ''}" title="Compose email" aria-label="Compose">${icon('compose', 22)}</button>
+            <div class="ee-toast${this.darkMode ? ' ee-dark-mode' : ''}" role="status" aria-live="polite"></div>
+            <div class="ee-compose${this.darkMode ? ' ee-dark-mode' : ''}" hidden>
+                <div class="ee-compose-dialog" role="dialog" aria-modal="false" aria-labelledby="${this._composeId('title')}">
                     <div class="ee-compose-header">
-                        <h3 class="ee-compose-title">Compose Email</h3>
-                        <button class="ee-compose-close">×</button>
+                        <h3 class="ee-compose-title" id="${this._composeId('title')}">${COMPOSE_TITLES.new}</h3>
+                        <button type="button" class="ee-compose-window-button" data-action="minimize" aria-label="Minimize" title="Minimize"><span class="ee-when-open">${icon('minimize', 16)}</span><span class="ee-when-minimized">${icon('expand', 16)}</span></button>
+                        <button type="button" class="ee-compose-window-button ee-compose-close" data-action="close" aria-label="Close" title="Close">${icon('close', 16)}</button>
                     </div>
-                    <form class="ee-compose-form">
-                        <div class="ee-compose-field">
-                            <label class="ee-compose-label">To:</label>
-                            <input type="email" class="ee-compose-input" name="to" placeholder="recipient@example.com" required>
+                    <form class="ee-compose-form" novalidate>
+                        <div class="ee-compose-row">
+                            <label class="ee-compose-label" for="${this._composeId('to')}">To</label>
+                            <input type="text" class="ee-compose-input" id="${this._composeId('to')}" name="to" autocomplete="off" spellcheck="false">
+                            <button type="button" class="ee-compose-link" data-action="show-cc">Cc / Bcc</button>
                         </div>
-                        <div class="ee-compose-field">
-                            <label class="ee-compose-label">Subject:</label>
-                            <input type="text" class="ee-compose-input" name="subject" placeholder="Enter subject">
+                        <div class="ee-compose-row" data-field="cc" hidden>
+                            <label class="ee-compose-label" for="${this._composeId('cc')}">Cc</label>
+                            <input type="text" class="ee-compose-input" id="${this._composeId('cc')}" name="cc" autocomplete="off" spellcheck="false">
                         </div>
-                        <div class="ee-compose-field">
-                            <label class="ee-compose-label">Message:</label>
-                            <textarea class="ee-compose-textarea" name="message" placeholder="Type your message here..." required></textarea>
+                        <div class="ee-compose-row" data-field="bcc" hidden>
+                            <label class="ee-compose-label" for="${this._composeId('bcc')}">Bcc</label>
+                            <input type="text" class="ee-compose-input" id="${this._composeId('bcc')}" name="bcc" autocomplete="off" spellcheck="false">
+                        </div>
+                        <div class="ee-compose-row">
+                            <label class="ee-compose-label" for="${this._composeId('subject')}">Subject</label>
+                            <input type="text" class="ee-compose-input" id="${this._composeId('subject')}" name="subject">
+                        </div>
+                        <div class="ee-compose-toolbar" role="toolbar" aria-label="Formatting">
+                            ${this._formatButton('bold', 'bold', 'Bold')}
+                            ${this._formatButton('italic', 'italic', 'Italic')}
+                            ${this._formatButton('insertUnorderedList', 'list', 'Bulleted list')}
+                            ${this._formatButton('insertOrderedList', 'listOrdered', 'Numbered list')}
+                            <button type="button" class="ee-compose-format" data-action="link" aria-label="Link" title="Link">${icon('link', 16)}</button>
+                        </div>
+                        <div class="ee-compose-linkbar" hidden>
+                            <input type="url" class="ee-compose-input" name="link" aria-label="Link address" placeholder="https://" autocomplete="off">
+                            <button type="button" class="ee-compose-small-button" data-action="insert-link">Add link</button>
+                            <button type="button" class="ee-compose-small-button" data-action="cancel-link">Cancel</button>
+                        </div>
+                        <div class="ee-compose-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message" data-placeholder="Write your message"></div>
+                        <div class="ee-compose-chips"></div>
+                        <div class="ee-compose-quote" hidden>
+                            <button type="button" class="ee-compose-quote-toggle" aria-expanded="false" title="Show the quoted message">${icon('more', 16)}<span class="ee-compose-quote-toggle-label"></span></button>
+                            <div class="ee-compose-quote-content" hidden>
+                                <div class="ee-compose-quote-header"></div>
+                                <div class="ee-compose-quote-frame"></div>
+                            </div>
                         </div>
                     </form>
+                    <div class="ee-compose-error" role="alert" hidden></div>
                     <div class="ee-compose-actions">
-                        <button type="button" class="ee-compose-cancel">Cancel</button>
-                        <button type="button" class="ee-compose-save-draft">Save Draft</button>
                         <button type="button" class="ee-compose-send">Send</button>
+                        <button type="button" class="ee-compose-icon-button" data-action="attach" aria-label="Attach files" title="Attach files">${icon('paperclip', 18)}</button>
+                        <input type="file" class="ee-compose-file-input" multiple hidden>
+                        <button type="button" class="ee-compose-save-draft">Save draft</button>
+                        <button type="button" class="ee-compose-icon-button" data-action="discard" aria-label="Discard" title="Discard">${icon('trash', 18)}</button>
                     </div>
                 </div>
             </div>
         `;
+
+        // Folder rows are rebuilt on every count change, so their clicks are taken here once
+        this.container.querySelector('.ee-folder-tree').addEventListener('click', e => {
+            const row = e.target.closest('.ee-folder-content');
+            if (row) {
+                this._fireAndForget(this.openFolder(row.closest('.ee-folder-item').getAttribute('data-path')));
+            }
+        });
 
         // Pane navigation in the single-pane layout, delegated because the panes
         // re-render their headers on every load
@@ -2604,144 +3946,724 @@ export class EmailEngineClient {
         this.positionComposeButton();
     }
 
+    // Unique element ids for the compose form labels, so two clients on one page do not share them
+    _composeId(field) {
+        if (!this._composeIdPrefix) {
+            EmailEngineClient._composeCounter = (EmailEngineClient._composeCounter || 0) + 1;
+            this._composeIdPrefix = `ee-compose-${EmailEngineClient._composeCounter}`;
+        }
+        return `${this._composeIdPrefix}-${field}`;
+    }
+
+    // A formatting toolbar button. Static arguments only, never message data.
+    _formatButton(command, iconName, label) {
+        return `<button type="button" class="ee-compose-format" data-command="${command}" aria-label="${label}" title="${label}" aria-pressed="false">${icon(iconName, 16)}</button>`;
+    }
+
+    // Opens a blank compose form, optionally prefilled: { to, cc, bcc, subject, text, html }. The
+    // address fields take a string or address entries; html is filtered to what the editor keeps.
+    // Resolves false when the user kept an unsaved message open instead.
+    compose(prefill = {}) {
+        return this._openCompose({ ...prefill, mode: 'new' });
+    }
+
+    // Opens the compose form as a reply to a message (the open one when messageId is omitted)
+    reply(messageId = null, { all = false } = {}) {
+        return this._respond(messageId, all ? 'reply-all' : 'reply');
+    }
+
+    // Opens the compose form to forward a message (the open one when messageId is omitted)
+    forward(messageId = null) {
+        return this._respond(messageId, 'forward');
+    }
+
+    async _respond(messageId, action) {
+        const id = messageId || (this.currentMessage && this.currentMessage.id);
+        if (!id) {
+            throw new Error('No message to respond to');
+        }
+
+        const [msg, ownAddress] = await Promise.all([
+            this.currentMessage && this.currentMessage.id === id ? this.currentMessage : this.apiRequest('GET', this._messagePath(id, '?webSafeHtml=true')),
+            // Without it the account's own address may stay among the reply-all recipients
+            this._getAccountInfo().then(
+                info => info && info.email,
+                () => null
+            )
+        ]);
+
+        return this._openCompose({ mode: action, original: msg, ...this.prepareResponse(msg, action, ownAddress) });
+    }
+
+    /**
+     * Opens a stored draft in the compose form (the open message when messageId is omitted).
+     * Saving replaces the stored draft, sending removes it. The draft's HTML is filtered to what
+     * the editor keeps, so a quote keeps its paragraphs, emphasis and quote bars but not a layout
+     * of its own; its files come along as attachments.
+     *
+     * @param {string} [messageId]
+     * @returns {Promise<boolean>} false when the user kept another unsaved message open instead
+     */
+    async editDraft(messageId = null) {
+        const id = messageId || (this.currentMessage && this.currentMessage.id);
+        if (!id) {
+            throw new Error('No draft to edit');
+        }
+        const msg = await this.apiRequest('GET', this._messagePath(id, '?textType=*'));
+        const text = msg.text || {};
+        return this._openCompose({
+            mode: 'draft',
+            to: msg.to,
+            cc: msg.cc,
+            bcc: msg.bcc,
+            subject: msg.subject || '',
+            html: text.html || textToEditorHtml(text.plain || ''),
+            attachments: listedAttachments(msg.attachments).map(referenceAttachment),
+            headers: threadingHeaders(msg),
+            draftId: id
+        });
+    }
+
+    async _openCompose(state = {}) {
+        const els = this._compose && this._compose.els;
+        if (!els) {
+            throw new Error('The compose form needs the client UI (a container)');
+        }
+        if (!(await this._settleOpenCompose())) {
+            return false;
+        }
+        this._fillCompose(state);
+        this._showCompose();
+        return true;
+    }
+
+    // Puts a compose state into the form: fields, editor content, attachments and the quote
+    _fillCompose({ mode = 'new', to, cc, bcc, subject, text, html, reference = null, original = null, attachments = [], headers = null, draftId = null }) {
+        this._resetCompose();
+        const { els } = this._compose;
+        Object.assign(this._compose, {
+            mode,
+            reference,
+            original,
+            headers,
+            draftId,
+            files: (attachments || []).filter(att => att && att.reference).map(att => ({ ...att, kind: 'reference' }))
+        });
+
+        const asField = value => (typeof value === 'string' ? value : this.formatAddressList(value));
+        const { form, editor } = els;
+        form.elements.to.value = asField(to);
+        form.elements.cc.value = asField(cc);
+        form.elements.bcc.value = asField(bcc);
+        form.elements.subject.value = subject || '';
+        editor.innerHTML = html ? sanitizeEditorHtml(html) : textToEditorHtml(text || '');
+        this._updateEditorEmpty();
+        this._showCopyFields({ cc: !!form.elements.cc.value, bcc: !!form.elements.bcc.value });
+
+        els.title.textContent = COMPOSE_TITLES[mode] || COMPOSE_TITLES.new;
+        if (original && reference && reference.inline) {
+            this._renderComposeQuote(original, mode);
+        }
+        this._renderComposeChips();
+        this._compose.snapshot = this._composeSnapshot();
+    }
+
+    _showCompose() {
+        const { els } = this._compose;
+        els.root.hidden = false;
+        this._setComposeMinimized(false);
+        const { form, editor } = els;
+        if (form.elements.to.value) {
+            editor.focus();
+            placeCaretAtStart(editor);
+        } else {
+            form.elements.to.focus();
+        }
+    }
+
+    _isComposeOpen() {
+        return !!(this._compose && this._compose.els && !this._compose.els.root.hidden);
+    }
+
+    // What the form holds, to tell whether anything changed since it was opened
+    _composeSnapshot() {
+        const { form, editor } = this._compose.els;
+        return JSON.stringify([
+            ['to', 'cc', 'bcc', 'subject'].map(key => form.elements[key].value),
+            editor.innerHTML,
+            this._compose.files.map(entry => (entry.kind === 'reference' ? entry.reference : entry.file.name))
+        ]);
+    }
+
+    _isComposeDirty() {
+        return this._isComposeOpen() && this._compose.snapshot !== this._composeSnapshot();
+    }
+
+    // Before the form is closed or reused: a changed message is saved as a draft or discarded, as
+    // the user chooses. Resolves false when the question was dismissed or saving failed, so the
+    // message stays on screen.
+    async _settleOpenCompose() {
+        if (!this._isComposeDirty()) {
+            return true;
+        }
+        this._setComposeMinimized(false);
+        const save = await this.confirmMethod('Save the message you are writing as a draft?', 'Unsaved message', 'Discard', 'Save draft');
+        // A host dialog closed without either button (its close button, Escape, the backdrop)
+        // answers null, and that is no decision to throw the message away: it stays on screen
+        if (save === null) {
+            return false;
+        }
+        if (!save) {
+            return true;
+        }
+        return this._saveComposeDraft();
+    }
+
+    // Closes the form, asking first when it holds unsaved changes
+    async _requestCloseCompose() {
+        if (await this._settleOpenCompose()) {
+            this._closeCompose();
+        }
+    }
+
+    _setComposeMinimized(minimized) {
+        const { dialog, minimizeButton } = this._compose.els;
+        dialog.classList.toggle('minimized', minimized);
+        const label = minimized ? 'Restore' : 'Minimize';
+        minimizeButton.setAttribute('aria-label', label);
+        minimizeButton.title = label;
+    }
+
+    // The message being answered or forwarded, read-only under the editor. The quote that is sent
+    // is built by the server from the stored original; this shows what it will contain. A reply's
+    // quote starts folded, a forward's open, with the forwarded message's own header above it.
+    _renderComposeQuote(original, mode) {
+        const { quote } = this._compose.els;
+        const forward = mode === 'forward';
+        quote.querySelector('.ee-compose-quote-header').innerHTML = forward ? this._forwardHeaderHtml(original) : '';
+        // A shadow root cannot be attached twice, so each quote gets a fresh host
+        const host = document.createElement('div');
+        host.className = 'ee-compose-quote-body';
+        quote.querySelector('.ee-compose-quote-frame').replaceChildren(host);
+        this._labelCollapsedThreads(this._renderMessageBody(host, original));
+        quote.hidden = false;
+        this._setQuoteExpanded(forward);
+    }
+
+    _setQuoteExpanded(expanded) {
+        const { quote } = this._compose.els;
+        const toggle = quote.querySelector('.ee-compose-quote-toggle');
+        const forward = this._compose.mode === 'forward';
+        toggle.setAttribute('aria-expanded', String(expanded));
+        const label = `${expanded ? 'Hide' : 'Show'} ${forward ? 'forwarded message' : 'quoted text'}`;
+        toggle.title = label;
+        toggle.querySelector('.ee-compose-quote-toggle-label').textContent = label;
+        quote.querySelector('.ee-compose-quote-content').hidden = !expanded;
+    }
+
+    // The header of a forwarded message, as the server adds it to the sent message
+    _forwardHeaderHtml(original) {
+        const rows = [
+            ['From', this._addressListHtml(original.from)],
+            ['Date', this.escapeHtml(this.formatFullDate(original.date))],
+            ['Subject', this.escapeHtml(original.subject || '(no subject)')],
+            ['To', this._addressListHtml(original.to)],
+            ['Cc', this._addressListHtml(original.cc)]
+        ].filter(([, value]) => value);
+        return `
+            <div class="ee-forward-title">Forwarded message</div>
+            ${rows.map(([label, value]) => `<div class="ee-forward-row"><span class="ee-forward-label">${label}</span><span>${value}</span></div>`).join('')}
+        `;
+    }
+
+    // Shows the Cc and Bcc fields named true and hides the rest; the link offers whichever is hidden
+    _showCopyFields(show) {
+        const { form } = this._compose.els;
+        const hidden = [];
+        for (const key of ['cc', 'bcc']) {
+            form.querySelector(`[data-field="${key}"]`).hidden = !show[key];
+            if (!show[key]) {
+                hidden.push(key === 'cc' ? 'Cc' : 'Bcc');
+            }
+        }
+        const link = form.querySelector('[data-action="show-cc"]');
+        link.hidden = !hidden.length;
+        link.textContent = hidden.join(' / ');
+    }
+
+    // Empties the form and starts a new compose state; the element references are kept
+    _resetCompose() {
+        const { els } = this._compose;
+        els.form.reset();
+        els.editor.replaceChildren();
+        els.chips.replaceChildren();
+        els.fileInput.value = '';
+        els.linkbar.hidden = true;
+        els.quote.hidden = true;
+        els.quote.querySelector('.ee-compose-quote-header').replaceChildren();
+        els.quote.querySelector('.ee-compose-quote-frame').replaceChildren();
+        this._clearComposeError();
+        this._compose = { els, mode: 'new', reference: null, original: null, headers: null, draftId: null, files: [], snapshot: null };
+        this._showCopyFields({ cc: false, bcc: false });
+    }
+
+    _closeCompose() {
+        if (this._compose && this._compose.els) {
+            this._compose.els.root.hidden = true;
+            this._resetCompose();
+        }
+    }
+
+    // Shows why the form cannot go out, inside the form itself, and marks the field it is about.
+    // The message stays until the form is changed or closed.
+    _showComposeError(message, field = null) {
+        const { form, error, editor } = this._compose.els;
+        this._clearComposeError();
+        error.textContent = message;
+        error.hidden = false;
+        const input = field === 'message' ? editor : field ? form.elements[field] : null;
+        if (input) {
+            input.setAttribute('aria-invalid', 'true');
+            input.focus();
+        }
+    }
+
+    _clearComposeError() {
+        const { dialog, error } = this._compose.els;
+        error.hidden = true;
+        dialog.querySelectorAll('[aria-invalid]').forEach(input => input.removeAttribute('aria-invalid'));
+    }
+
+    // Attachment chips: picked files, and the original's files of a forward or the files of a
+    // reopened draft, which travel as references. Each can be removed.
+    _renderComposeChips() {
+        this._compose.els.chips.innerHTML = this._compose.files
+            .map((entry, index) => {
+                const name = entry.kind === 'reference' ? entry.filename || 'Unnamed attachment' : entry.file.name;
+                const size = entry.kind === 'reference' ? entry.size : entry.file.size;
+                return `
+                <span class="ee-compose-chip">
+                    ${icon('paperclip', 12)}
+                    <span class="ee-compose-chip-name">${this.escapeHtml(name)}</span>
+                    ${size ? `<span class="ee-compose-chip-size">${this.formatFileSize(size)}</span>` : ''}
+                    <button type="button" class="ee-compose-chip-remove" data-index="${index}" aria-label="Remove ${this.escapeHtml(name)}" title="Remove">${icon('close', 12)}</button>
+                </span>`;
+            })
+            .join('');
+    }
+
+    _readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = String(reader.result || '');
+                resolve(result.slice(result.indexOf(',') + 1));
+            };
+            reader.onerror = () => reject(reader.error || new Error(`Could not read ${file.name}`));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Takes picked files into the form within the size limit. They are kept as File objects and
+    // read only when the message is sent, so a removed file is never read at all. Files of the
+    // original travel as references and do not count against the limit.
+    _addComposeFiles(files) {
+        let total = this._compose.files.reduce((sum, entry) => sum + (entry.kind === 'file' ? entry.file.size : 0), 0);
+        const skipped = [];
+        for (const file of files) {
+            if (total + file.size > this.maxAttachmentSize) {
+                skipped.push(file.name);
+                continue;
+            }
+            total += file.size;
+            this._compose.files.push({ kind: 'file', file });
+        }
+        this._renderComposeChips();
+        if (skipped.length) {
+            this._showComposeError(`Attachments are limited to ${this.formatFileSize(this.maxAttachmentSize)} in total. Not attached: ${skipped.join(', ')}`);
+        }
+    }
+
+    _readComposeAttachments(files) {
+        return Promise.all(
+            // a reference entry goes as it is; attachmentPayload keeps only the fields it sends
+            files.map(async entry =>
+                entry.kind === 'reference'
+                    ? entry
+                    : {
+                          filename: entry.file.name,
+                          contentType: entry.file.type || 'application/octet-stream',
+                          content: await this._readFileAsBase64(entry.file)
+                      }
+            )
+        );
+    }
+
+    // The form as a message object, plus the first reason it cannot go out as asked (null when it
+    // can). requireMessage applies the send rules: a recipient, and some text unless the message
+    // is a forward.
+    _readComposeForm(requireMessage) {
+        const { form, editor } = this._compose.els;
+        const { reference, headers } = this._compose;
+        const fields = {};
+        const invalid = [];
+        for (const key of ['to', 'cc', 'bcc']) {
+            fields[key] = this.parseAddressList(form.elements[key].value);
+            invalid.push(...fields[key].filter(entry => !ADDRESS_PATTERN.test(entry.address)).map(entry => entry.address || entry.name));
+        }
+
+        const text = editorText(editor);
+        const html = text ? sanitizeEditorHtml(editor.innerHTML) : '';
+
+        const message = { to: fields.to, cc: fields.cc, bcc: fields.bcc, subject: form.elements.subject.value.trim(), text, html, reference, headers };
+        const isForward = !!reference && reference.action === 'forward';
+        const empty = !fields.to.length && !fields.cc.length && !fields.bcc.length && !message.subject && !text && !this._compose.files.length && !reference;
+
+        let problem = null;
+        if (requireMessage && !fields.to.length) {
+            problem = { message: 'Add at least one recipient.', field: 'to' };
+        } else if (!requireMessage && empty) {
+            problem = { message: 'Nothing to save - fill in at least one field first.', field: 'to' };
+        } else if (invalid.length) {
+            problem = { message: `Not a valid email address: ${invalid.join(', ')}`, field: 'to' };
+        } else if (requireMessage && !text && !isForward) {
+            // A forward can go without a note of its own; anything else needs some text
+            problem = { message: 'Write a message before sending.', field: 'message' };
+        }
+        return { message, problem };
+    }
+
+    // Runs a compose request with its button showing progress. The form is checked first, the
+    // picked files are read, and on success the form closes and the result is returned; on any
+    // failure the reason is shown over the form, kept as it was, and the result is null.
+    async _runComposeAction(button, busyText, errorTitle, requireMessage, submit) {
+        const { message, problem } = this._readComposeForm(requireMessage);
+        if (problem) {
+            this._showComposeError(problem.message, problem.field);
+            return null;
+        }
+        this._clearComposeError();
+
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = busyText;
+        try {
+            message.attachments = await this._readComposeAttachments(this._compose.files);
+            const result = await submit(message);
+            this._closeCompose();
+            return result || {};
+        } catch (error) {
+            console.error(`${errorTitle}:`, error);
+            this._showComposeError(`${errorTitle}: ${this._formatSendError(error)}`);
+            return null;
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+    // Saves the form as a draft, replacing the stored draft it was opened from. Resolves whether
+    // it was saved; on failure the form stays open with the reason.
+    async _saveComposeDraft() {
+        const { draftId, els } = this._compose;
+        const response = await this._runComposeAction(els.saveDraftButton, 'Saving...', 'Could not save the draft', false, message =>
+            draftId ? this.updateDraft(draftId, message) : this.saveDraft(message)
+        );
+        if (!response) {
+            return false;
+        }
+        this.notify('Draft saved.');
+        this._afterDraftChange(draftId, response.path);
+        return true;
+    }
+
+    // Brings the list and viewer up to date after a draft was saved, replaced or sent
+    _afterDraftChange(oldDraftId, draftsPath) {
+        if (this._destroyed) {
+            return;
+        }
+        if (oldDraftId && this.currentMessage && this.currentMessage.id === oldDraftId) {
+            this.currentMessage = null;
+            this.renderMessage();
+            this._notifyNavigate();
+        }
+        if (this.currentFolder && (this.currentFolder === draftsPath || this._isOutgoingFolder(this.currentFolder))) {
+            this._fireAndForget(this.loadMessages(this.currentFolder));
+        }
+    }
+
+    async _sendCompose() {
+        const { draftId, els } = this._compose;
+        const response = await this._runComposeAction(els.sendButton, 'Sending...', 'Could not send the message', true, message => this.sendMessage(message));
+        if (!response) {
+            return;
+        }
+        // Submitting only queues the message; delivery happens afterwards and can still fail
+        this.notify('Message queued for delivery.');
+        if (draftId) {
+            await this._discardDraft(draftId);
+            this._afterDraftChange(draftId, null);
+        }
+    }
+
+    async _discardCompose() {
+        if (this._isComposeDirty()) {
+            const discard = await this.confirmMethod('Discard this message?', 'Discard message', 'Cancel', 'Discard');
+            if (!discard) {
+                return;
+            }
+        }
+        this._closeCompose();
+    }
+
+    // The placeholder shows while the editor holds no text
+    _updateEditorEmpty() {
+        const { editor } = this._compose.els;
+        editor.classList.toggle('ee-empty', !editor.textContent.trim() && !editor.querySelector('li, blockquote'));
+    }
+
+    // Marks the toolbar buttons whose format applies at the caret
+    _updateFormatButtons() {
+        const { editor, formatButtons } = this._compose.els;
+        if (typeof document.queryCommandState !== 'function' || !editor.contains(document.activeElement)) {
+            return;
+        }
+        for (const button of formatButtons) {
+            let state = false;
+            try {
+                state = document.queryCommandState(button.dataset.command);
+            } catch {
+                // not supported
+            }
+            button.setAttribute('aria-pressed', String(state));
+        }
+    }
+
+    _openLinkbar() {
+        const { editor, linkbar } = this._compose.els;
+        const selection = window.getSelection();
+        const range = selection && selection.rangeCount ? selection.getRangeAt(0) : null;
+        this._compose.linkRange = range && editor.contains(range.commonAncestorContainer) ? range.cloneRange() : null;
+        const input = linkbar.querySelector('[name="link"]');
+        input.value = '';
+        linkbar.hidden = false;
+        input.focus();
+    }
+
+    // Hides the link field and puts the selection back where it was in the editor
+    _closeLinkbar() {
+        const { editor, linkbar } = this._compose.els;
+        linkbar.hidden = true;
+        editor.focus();
+        const range = this._compose.linkRange;
+        if (range) {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+
+    // Turns the selection into a link, or inserts the address as one at the caret. Only http(s)
+    // and mailto addresses are taken; a bare host gets https://.
+    _insertLink() {
+        const { linkbar } = this._compose.els;
+        const input = linkbar.querySelector('[name="link"]');
+        let url = input.value.trim();
+        if (!url) {
+            this._closeLinkbar();
+            return;
+        }
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) {
+            url = url.includes('@') && !url.includes('/') ? `mailto:${url}` : `https://${url}`;
+        }
+        if (!SAFE_LINK.test(url)) {
+            this._showComposeError('Links must start with http://, https:// or mailto:');
+            input.focus();
+            return;
+        }
+        this._closeLinkbar();
+        const range = this._compose.linkRange;
+        if (!range || range.collapsed) {
+            const label = url.replace(/^mailto:/i, '');
+            document.execCommand('insertHTML', false, `<a href="${this.escapeHtml(url)}">${this.escapeHtml(label)}</a>`);
+        } else {
+            document.execCommand('createLink', false, url);
+        }
+        this._updateEditorEmpty();
+    }
+
+    // Pasted and dropped content goes through the editor's filter; files become attachments
+    _onEditorPaste(e) {
+        const data = e.clipboardData;
+        if (!data) {
+            return;
+        }
+        e.preventDefault();
+        const html = data.getData('text/html');
+        const text = data.getData('text/plain');
+        if (html) {
+            document.execCommand('insertHTML', false, sanitizeEditorHtml(html));
+        } else if (text) {
+            document.execCommand('insertText', false, text);
+        } else if (data.files && data.files.length) {
+            this._addComposeFiles(Array.from(data.files));
+        }
+        this._updateEditorEmpty();
+    }
+
     setupComposeModal() {
         if (typeof document === 'undefined' || !this.container) {
             return;
         }
 
-        const composeButton = this.container.querySelector('.ee-compose-button');
-        const modal = this.container.querySelector('.ee-compose-modal');
-        const closeButton = this.container.querySelector('.ee-compose-close');
-        const cancelButton = this.container.querySelector('.ee-compose-cancel');
-        const saveDraftButton = this.container.querySelector('.ee-compose-save-draft');
-        const sendButton = this.container.querySelector('.ee-compose-send');
-        const form = this.container.querySelector('.ee-compose-form');
-
-        // Open modal
-        composeButton.addEventListener('click', () => {
-            modal.classList.add('show');
-            // Focus the To field
-            const toField = form.querySelector('input[name="to"]');
-            setTimeout(() => toField.focus(), 100);
-        });
-
-        // Close modal handlers
-        const closeModal = () => {
-            modal.classList.remove('show');
-            form.reset();
+        const root = this.container.querySelector('.ee-compose');
+        const dialog = root.querySelector('.ee-compose-dialog');
+        const els = {
+            root,
+            dialog,
+            form: dialog.querySelector('.ee-compose-form'),
+            title: dialog.querySelector('.ee-compose-title'),
+            editor: dialog.querySelector('.ee-compose-editor'),
+            toolbar: dialog.querySelector('.ee-compose-toolbar'),
+            formatButtons: Array.from(dialog.querySelectorAll('.ee-compose-format[data-command]')),
+            linkbar: dialog.querySelector('.ee-compose-linkbar'),
+            chips: dialog.querySelector('.ee-compose-chips'),
+            fileInput: dialog.querySelector('.ee-compose-file-input'),
+            quote: dialog.querySelector('.ee-compose-quote'),
+            error: dialog.querySelector('.ee-compose-error'),
+            sendButton: dialog.querySelector('.ee-compose-send'),
+            saveDraftButton: dialog.querySelector('.ee-compose-save-draft'),
+            minimizeButton: dialog.querySelector('[data-action="minimize"]')
         };
+        this._compose = { els };
+        this._resetCompose();
 
-        closeButton.addEventListener('click', closeModal);
-        cancelButton.addEventListener('click', closeModal);
+        this.container
+            .querySelectorAll('.ee-compose-button, .ee-sidebar-compose-button')
+            .forEach(button => button.addEventListener('click', () => this._composeFailSafe(this.compose())));
 
-        // Close on backdrop click
-        modal.addEventListener('click', e => {
-            if (e.target === modal) {
-                closeModal();
+        this._bindComposeWindow(els);
+        this._bindComposeEditor(els);
+        this._bindComposeFields(els);
+    }
+
+    // A compose action started from a click has no caller to report to
+    _composeFailSafe(promise) {
+        return promise.catch(error => this._alertActionFailed(error, 'Something went wrong in the compose form'));
+    }
+
+    // Close, discard, minimize, and the keys that work anywhere in the form
+    _bindComposeWindow(els) {
+        const { dialog, linkbar } = els;
+        dialog.querySelector('[data-action="close"]').addEventListener('click', () => this._composeFailSafe(this._requestCloseCompose()));
+        dialog.querySelector('[data-action="discard"]').addEventListener('click', () => this._composeFailSafe(this._discardCompose()));
+        els.minimizeButton.addEventListener('click', () => this._setComposeMinimized(!dialog.classList.contains('minimized')));
+        // A minimized form comes back with a click on its title bar
+        dialog.querySelector('.ee-compose-header').addEventListener('click', e => {
+            if (dialog.classList.contains('minimized') && !e.target.closest('button')) {
+                this._setComposeMinimized(false);
             }
         });
 
-        // Close on Escape key
+        // Keys work while focus is in the form: Escape closes it (or the link field), Ctrl+Enter sends
         this._composeKeydownHandler = e => {
-            if (e.key === 'Escape' && modal.classList.contains('show')) {
-                closeModal();
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (!linkbar.hidden) {
+                    this._closeLinkbar();
+                } else {
+                    this._composeFailSafe(this._requestCloseCompose());
+                }
+            } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                els.sendButton.click();
             }
         };
-        document.addEventListener('keydown', this._composeKeydownHandler);
+        dialog.addEventListener('keydown', this._composeKeydownHandler);
 
-        // Save the composed message as a draft instead of sending it
-        saveDraftButton.addEventListener('click', async () => {
-            const formData = new FormData(form);
-            const to = formData.get('to').trim();
-            const subject = formData.get('subject').trim();
-            const message = formData.get('message').trim();
+        els.saveDraftButton.addEventListener('click', () => this._composeFailSafe(this._saveComposeDraft()));
+        els.sendButton.addEventListener('click', () => this._composeFailSafe(this._sendCompose()));
+    }
 
-            if (!to && !subject && !message) {
-                modal.classList.remove('show');
-                await this.alertMethod('Nothing to save - fill in at least one field first.', 'Validation Error', null, 'OK');
-                modal.classList.add('show');
-                setTimeout(() => form.querySelector('input[name="to"]').focus(), 100);
-                return;
-            }
-
-            const originalText = saveDraftButton.textContent;
-            saveDraftButton.disabled = true;
-            saveDraftButton.textContent = 'Saving...';
-
-            try {
-                const response = await this.saveDraft(to || null, subject, message);
-                closeModal();
-                await this.alertMethod('Draft saved to the Drafts folder.', 'Success', null, 'OK');
-                // Refresh the list when the user is looking at the Drafts folder
-                if (!this._destroyed && response && response.path && this.currentFolder === response.path) {
-                    await this.loadMessages(this.currentFolder);
-                }
-            } catch (error) {
-                console.error('Failed to save draft:', error);
-                // Close modal before showing error alert, then reopen with preserved values
-                modal.classList.remove('show');
-                const errorMessage = this._formatSendError(error);
-                await this.alertMethod(errorMessage, 'Save Error', null, 'OK');
-                modal.classList.add('show');
-                setTimeout(() => form.querySelector('input[name="to"]').focus(), 100);
-            } finally {
-                saveDraftButton.disabled = false;
-                saveDraftButton.textContent = originalText;
+    // The editor: typing state, paste and drop, the formatting toolbar and the link field
+    _bindComposeEditor(els) {
+        const { dialog, editor, toolbar, linkbar } = els;
+        editor.addEventListener('input', () => this._updateEditorEmpty());
+        editor.addEventListener('keyup', () => this._updateFormatButtons());
+        editor.addEventListener('mouseup', () => this._updateFormatButtons());
+        editor.addEventListener('paste', e => this._onEditorPaste(e));
+        // Dropped files are attached; dropped markup would bypass the paste filter, so text only
+        dialog.addEventListener('dragover', e => e.preventDefault());
+        dialog.addEventListener('drop', e => {
+            e.preventDefault();
+            const files = e.dataTransfer && Array.from(e.dataTransfer.files || []);
+            if (files && files.length) {
+                this._addComposeFiles(files);
+            } else if (e.dataTransfer && editor.contains(e.target)) {
+                document.execCommand('insertText', false, e.dataTransfer.getData('text/plain'));
             }
         });
 
-        // Send email
-        sendButton.addEventListener('click', async () => {
-            const formData = new FormData(form);
-            const to = formData.get('to').trim();
-            const subject = formData.get('subject').trim();
-            const message = formData.get('message').trim();
-
-            if (!to || !message) {
-                // Close modal temporarily to show alert, then reopen
-                modal.classList.remove('show');
-                await this.alertMethod('Please fill in the recipient and message fields.', 'Validation Error', null, 'OK');
-                modal.classList.add('show');
-                // Re-focus the appropriate field
-                const fieldToFocus = !to ? form.querySelector('input[name="to"]') : form.querySelector('textarea[name="message"]');
-                setTimeout(() => fieldToFocus.focus(), 100);
-                return;
-            }
-
-            // Disable send button and show loading state
-            const originalText = sendButton.textContent;
-            sendButton.disabled = true;
-            sendButton.textContent = 'Sending...';
-
-            try {
-                await this.sendMessage(to, subject, message);
-                // Close modal before showing success alert
-                closeModal();
-                await this.alertMethod('Email sent successfully!', 'Success', null, 'OK');
-            } catch (error) {
-                console.error('Failed to send email:', error);
-                // Close modal before showing error alert
-                modal.classList.remove('show');
-                const errorMessage = this._formatSendError(error);
-                await this.alertMethod(errorMessage, 'Send Error', null, 'OK');
-
-                // Reopen modal with preserved values after error alert
-                modal.classList.add('show');
-                // Re-focus the To field to allow user to continue editing
-                const toField = form.querySelector('input[name="to"]');
-                setTimeout(() => toField.focus(), 100);
-            } finally {
-                // Re-enable send button
-                sendButton.disabled = false;
-                sendButton.textContent = originalText;
-            }
-        });
-
-        // Handle Enter key in form (Ctrl+Enter to send)
-        form.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && e.ctrlKey) {
+        // keep the selection in the editor while a toolbar button is pressed
+        toolbar.addEventListener('mousedown', e => {
+            if (e.target.closest('.ee-compose-format')) {
                 e.preventDefault();
-                sendButton.click();
+            }
+        });
+        toolbar.addEventListener('click', e => {
+            if (e.target.closest('[data-action="link"]')) {
+                this._openLinkbar();
+                return;
+            }
+            const button = e.target.closest('.ee-compose-format[data-command]');
+            if (button) {
+                editor.focus();
+                document.execCommand(button.dataset.command, false, null);
+                this._updateEditorEmpty();
+                this._updateFormatButtons();
+            }
+        });
+        linkbar.querySelector('[data-action="insert-link"]').addEventListener('click', () => this._insertLink());
+        linkbar.querySelector('[data-action="cancel-link"]').addEventListener('click', () => this._closeLinkbar());
+        linkbar.querySelector('[name="link"]').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this._insertLink();
+            }
+        });
+    }
+
+    // The address fields, attachments and the quote toggle
+    _bindComposeFields(els) {
+        const { dialog, form, fileInput, chips, quote } = els;
+        // the editor's input bubbles here too
+        form.addEventListener('input', () => {
+            if (!els.error.hidden) {
+                this._clearComposeError();
+            }
+        });
+
+        quote.querySelector('.ee-compose-quote-toggle').addEventListener('click', e => {
+            this._setQuoteExpanded(e.currentTarget.getAttribute('aria-expanded') !== 'true');
+        });
+
+        form.querySelector('[data-action="show-cc"]').addEventListener('click', () => {
+            const ccShown = !form.querySelector('[data-field="cc"]').hidden;
+            this._showCopyFields({ cc: true, bcc: true });
+            (ccShown ? form.elements.bcc : form.elements.cc).focus();
+        });
+
+        dialog.querySelector('[data-action="attach"]').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            const files = Array.from(fileInput.files || []);
+            fileInput.value = '';
+            this._addComposeFiles(files);
+        });
+        chips.addEventListener('click', e => {
+            const remove = e.target.closest('.ee-compose-chip-remove');
+            if (remove) {
+                this._compose.files.splice(Number(remove.dataset.index), 1);
+                this._renderComposeChips();
             }
         });
     }
@@ -2756,25 +4678,23 @@ export class EmailEngineClient {
             return;
         }
 
+        const sidebarCompose = this.container.querySelector('.ee-sidebar-compose');
         const updateButtonPosition = () => {
             const containerRect = this.container.getBoundingClientRect();
             const margin = 20; // Desired margin from edges
+            const buttonSize = 56;
 
-            // A hidden container (display: none) reports a zero-size rect; positioning
-            // against it would push the fixed-position button off-screen. Hide the button
-            // instead and let the ResizeObserver below restore it once the container is
-            // shown - hosts often create the client inside a container that is only made
-            // visible afterwards.
-            if (!containerRect.width && !containerRect.height) {
+            // The floating button is the Compose button of the one-pane layout only. Whether
+            // that layout is on is the stylesheet's container query to decide, so read its
+            // answer (the folder pane's own Compose button is laid out) rather than repeat
+            // the breakpoint. A hidden container (display: none) reports a zero-size rect;
+            // the ResizeObserver below brings the button back once the container is shown.
+            const wide = sidebarCompose && sidebarCompose.offsetParent !== null;
+            if (wide || (!containerRect.width && !containerRect.height)) {
                 composeButton.style.display = 'none';
                 return;
             }
             composeButton.style.display = '';
-
-            // A labelled pill on roomy layouts, a round icon button where width is
-            // short and the button would cover too much of the single pane
-            composeButton.classList.toggle('ee-compose-compact', containerRect.width < NARROW_WIDTH);
-            const buttonSize = composeButton.offsetWidth || 56;
 
             // Calculate the ideal position (bottom-right of container with margin)
             const idealBottom = window.innerHeight - containerRect.bottom + margin;
@@ -2844,7 +4764,7 @@ export class EmailEngineClient {
     init() {
         if (typeof document === 'undefined') {
             console.warn('EmailEngineClient UI features are only available in browser environments');
-            return;
+            return Promise.resolve(false);
         }
 
         this.createStyles();
@@ -2856,19 +4776,31 @@ export class EmailEngineClient {
             toggleBtn.addEventListener('click', () => this.toggleDarkMode());
         }
 
-        this._loadInitialView();
+        return this._loadInitialView();
     }
 
     // Load the folder list and open the account's inbox. Used on startup and by
     // the Retry button that loadFolders renders when the request fails; both
     // failure paths already put an error panel in the UI, so the rejection is
     // logged and swallowed here rather than surfacing as an unhandled rejection.
+    // Resolves whether the view loaded.
     _loadInitialView() {
         // Drop whatever a previous attempt left here; loadFolders and loadMessages
         // paint their own loading states from this point on.
         this._setPaneHtml('.ee-message-list', this._messageListPlaceholder());
 
-        return this.loadFolders()
+        // A deep-linked message loads alongside the folders, not after them. Only the first load
+        // follows the link: a Retry after a folder failure starts from the inbox as usual. A
+        // message that fails has already put its error in the viewer.
+        const messageId = this.initialMessage;
+        this.initialMessage = null;
+        const message = messageId ? this.loadMessage(messageId).catch(() => null) : Promise.resolve(null);
+
+        // The folders come first without their unread counts: those cost a STATUS command per
+        // folder on the IMAP connection the message and the listing are read over too, so asking
+        // for them up front made the first view wait behind them - seconds on a distant server.
+        // They follow once the view is up.
+        return this.loadFolders({ counters: false })
             .catch(error => {
                 // loadFolders reports into the sidebar, but the message list is the
                 // larger pane and would still read "Select a folder" - a folder the
@@ -2876,19 +4808,56 @@ export class EmailEngineClient {
                 this._renderPaneError('.ee-message-list', 'Folders unavailable', error, () => this._loadInitialView());
                 throw error;
             })
-            .then(() => {
-                const inbox =
-                    this.folders.find(f => f.specialUse && f.specialUse.includes('\\Inbox')) ||
-                    this.folders.find(f => f.name.toLowerCase() === 'inbox') ||
-                    this.folders[0];
-                if (inbox) {
-                    return this.loadMessages(inbox.path);
-                }
+            .then(async () => {
+                await this._listFolderOf(await message);
+                this._fireAndForget(this._loadFolderCounters());
+                return true;
             })
             .catch(error => {
                 // Both loadFolders and loadMessages have already rendered a panel
                 console.error('Failed to load the initial view:', error);
+                return false;
             });
+    }
+
+    // Fetches the folder list again with unread counts and redraws the folder pane. Without them
+    // the folders still work, so a failure only leaves the counts out.
+    async _loadFolderCounters() {
+        try {
+            await this._fetchFolders(true);
+        } catch (error) {
+            console.warn('Failed to load folder counts:', error);
+            return;
+        }
+        if (this.container && !this._destroyed) {
+            this.renderFolderList();
+        }
+    }
+
+    _inboxFolder() {
+        return (
+            this.folders.find(f => f.specialUse && f.specialUse.includes('\\Inbox')) ||
+            this.folders.find(f => f.name.toLowerCase() === 'inbox') ||
+            this.folders[0]
+        );
+    }
+
+    // Lists the folder holding a message, or the inbox when there is no message or it reports no
+    // folder (Gmail API accounts) or one that is not listed
+    _listFolderOf(message) {
+        const folder = (message && message.path && this.folders.find(f => f.path === message.path)) || this._inboxFolder();
+        if (folder && !this._destroyed) {
+            return this.loadMessages(folder.path);
+        }
+    }
+
+    // Opens one message by its EmailEngine ID and lists the folder holding it. A message that
+    // cannot be loaded leaves its error in the viewer and the inbox in the list, so the reader
+    // still has somewhere to go.
+    async openMessage(messageId) {
+        const [message] = await Promise.all([this.loadMessage(messageId).catch(() => null), this.folders.length ? null : this.loadFolders()]);
+        await this._listFolderOf(message);
+        return message;
     }
 
     _updateActivity() {
@@ -2940,12 +4909,14 @@ export class EmailEngineClient {
 
         // Update UI. The compose button and modal are siblings of .ee-client, so
         // they carry the class themselves.
-        this.container.querySelectorAll('.ee-client, .ee-compose-button, .ee-compose-modal').forEach(el => el.classList.toggle('ee-dark-mode', this.darkMode));
+        this.container
+            .querySelectorAll('.ee-client, .ee-compose-button, .ee-compose, .ee-toast')
+            .forEach(el => el.classList.toggle('ee-dark-mode', this.darkMode));
 
         // Update toggle button icon
-        const icon = this.container.querySelector('.ee-dark-mode-icon');
-        if (icon) {
-            icon.textContent = this.darkMode ? '☀️' : '🌙';
+        const toggleIcon = this.container.querySelector('.ee-dark-mode-icon');
+        if (toggleIcon) {
+            toggleIcon.innerHTML = icon(this.darkMode ? 'sun' : 'moon', 14);
         }
     }
 
@@ -2969,15 +4940,18 @@ export class EmailEngineClient {
             this.keepAliveTimer = null;
         }
 
+        clearTimeout(this._toastTimer);
+        clearTimeout(this._otpCopyTimer);
+
         // Remove the compose button's window scroll/resize listeners
         if (this._composeButtonCleanup) {
             this._composeButtonCleanup();
             this._composeButtonCleanup = null;
         }
 
-        // Remove the document-level Escape keydown listener
-        if (this._composeKeydownHandler && typeof document !== 'undefined') {
-            document.removeEventListener('keydown', this._composeKeydownHandler);
+        // The compose form's keys listen on the form itself
+        if (this._composeKeydownHandler && this._compose && this._compose.els) {
+            this._compose.els.dialog.removeEventListener('keydown', this._composeKeydownHandler);
             this._composeKeydownHandler = null;
         }
 

@@ -2,22 +2,22 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "emailengine-app@2.87.2",
-  "documentNamespace": "http://spdx.org/spdxdocs/emailengine-app-2.87.2-f074af74-5d30-4fc5-b3b8-e18be212f971",
+  "name": "emailengine-app@2.90.0",
+  "documentNamespace": "http://spdx.org/spdxdocs/emailengine-app-2.90.0-4e052111-953d-4499-bfb1-05f1aff3b921",
   "creationInfo": {
-    "created": "2026-11-10T10:03:08.214Z",
+    "created": "2026-11-24T13:21:56.748Z",
     "creators": [
       "Tool: npm/cli-11.19.0"
     ]
   },
   "documentDescribes": [
-    "SPDXRef-Package-emailengine-app-2.87.2"
+    "SPDXRef-Package-emailengine-app-2.90.0"
   ],
   "packages": [
     {
       "name": "emailengine-app",
-      "SPDXID": "SPDXRef-Package-emailengine-app-2.87.2",
-      "versionInfo": "2.87.2",
+      "SPDXID": "SPDXRef-Package-emailengine-app-2.90.0",
+      "versionInfo": "2.90.0",
       "packageFileName": "",
       "description": "Email Sync Engine",
       "primaryPackagePurpose": "LIBRARY",
@@ -29,7 +29,7 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/emailengine-app@2.87.2"
+          "referenceLocator": "pkg:npm/emailengine-app@2.90.0"
         }
       ]
     },
@@ -150,78 +150,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "a043284247292f3e2e2eedcb44e3216babbedb249d47c851d1da97fbb48ac297eb5ce253d554d494aaf0199d79861df07593354df710f8cfa9fa088d7ea5809b"
-        }
-      ]
-    },
-    {
-      "name": "@hapi/topo",
-      "SPDXID": "SPDXRef-Package-hapi.topo-5.1.0",
-      "versionInfo": "5.1.0",
-      "packageFileName": "node_modules/@hapi/bell/node_modules/@hapi/topo",
-      "description": "Topological sorting with grouping support",
-      "downloadLocation": "https://registry.npmjs.org/@hapi/topo/-/topo-5.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40hapi/topo@5.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "7e84192898a0ece6f404c01805f70993c77bed0b4e7bb5a8e28c7b7dfd65418a0d3406fa8f0718d6771da32d9ef70419cef372ece0d90982642bc93399c02702"
-        }
-      ]
-    },
-    {
-      "name": "@hapi/hoek",
-      "SPDXID": "SPDXRef-Package-hapi.hoek-9.3.0",
-      "versionInfo": "9.3.0",
-      "packageFileName": "node_modules/@hapi/bell/node_modules/@hapi/topo/node_modules/@hapi/hoek",
-      "description": "General purpose node utilities",
-      "downloadLocation": "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.3.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40hapi/hoek@9.3.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "fdceab7f85099661e50bd6f905a36fcc0705bfb1d9d901da5740f8fc736505dbc59ef42af11238918761c8f0a5ed78fea16bd3590f2e8e1a92e772c88007ba29"
-        }
-      ]
-    },
-    {
-      "name": "joi",
-      "SPDXID": "SPDXRef-Package-joi-17.13.9",
-      "versionInfo": "17.13.9",
-      "packageFileName": "node_modules/@hapi/bell/node_modules/joi",
-      "description": "Object schema validation",
-      "downloadLocation": "https://registry.npmjs.org/joi/-/joi-17.13.9.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/joi@17.13.9"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "9651424f6ad5b5fc20042688ab1b638a6fa21eaae0b2ce0e3621926228861fd8e78d6abdd29a5245f7ea9aa2afc296bc5be61f20bc9057a5f219c7a05d7d93e2"
         }
       ]
     },
@@ -1043,11 +971,11 @@
     },
     {
       "name": "@ioredis/commands",
-      "SPDXID": "SPDXRef-Package-ioredis.commands-2.0.0",
-      "versionInfo": "2.0.0",
+      "SPDXID": "SPDXRef-Package-ioredis.commands-2.4.0",
+      "versionInfo": "2.4.0",
       "packageFileName": "node_modules/@ioredis/commands",
       "description": "Redis commands",
-      "downloadLocation": "https://registry.npmjs.org/@ioredis/commands/-/commands-2.0.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@ioredis/commands/-/commands-2.4.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/ioredis/commands",
       "licenseDeclared": "MIT",
@@ -1055,13 +983,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40ioredis/commands@2.0.0"
+          "referenceLocator": "pkg:npm/%40ioredis/commands@2.4.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "bebc74004fd3d21edc459c1fa35337f42afe66166b91fd15f2640def9c2e70a0b108b0fd97f557ea7a37805beb2ea0f52251bfd4bb735a8bea130dedd15afdce"
+          "checksumValue": "7f2bbb64ce51bedb18677a73e031653ea4860776a8543f62af4bcbebf4cbb51a3c10cb82edfd19faa181b240e450bfe026ce5fcde9718adc9901f34d502ad5ad"
         }
       ]
     },
@@ -1163,11 +1091,11 @@
     },
     {
       "name": "@opentelemetry/api",
-      "SPDXID": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "versionInfo": "1.9.1",
+      "SPDXID": "SPDXRef-Package-opentelemetry.api-1.10.0",
+      "versionInfo": "1.10.0",
       "packageFileName": "node_modules/@opentelemetry/api",
       "description": "Public API for OpenTelemetry",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.1.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/api/-/api-1.10.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/api",
       "licenseDeclared": "Apache-2.0",
@@ -1175,133 +1103,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/api@1.9.1"
+          "referenceLocator": "pkg:npm/%40opentelemetry/api@1.10.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "80bc8994f1cf658740935244340f4b7877a365ed538bbeffa537859bf9cc5e6407fc715995c4bf3b65c907e2fc7e46eb352aa176d96f8c1563c705186a7347e5"
-        }
-      ]
-    },
-    {
-      "name": "@opentelemetry/core",
-      "SPDXID": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "versionInfo": "2.12.1",
-      "packageFileName": "node_modules/@opentelemetry/core",
-      "description": "OpenTelemetry Core provides constants and utilities shared by all OpenTelemetry SDK packages.",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/core/-/core-2.12.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-core",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/core@2.12.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "de1afa3e3d3f1b4a1580819bf7b215730f418d9e9eb9da272a3ae6431c3b26abb253f5e655b25e9649b2a14d2c4ff3af1c692ffabd6d72bc2ff0c6d25fb68a1f"
-        }
-      ]
-    },
-    {
-      "name": "@opentelemetry/resources",
-      "SPDXID": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "versionInfo": "2.12.1",
-      "packageFileName": "node_modules/@opentelemetry/resources",
-      "description": "OpenTelemetry SDK resources",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/resources/-/resources-2.12.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-resources",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/resources@2.12.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "230acd72e2c2be72409cd2e45f1c74530fab8c19155ba54642b85decf6a735fd0b6af3b391393db0302376a7a033ba7f55dc5e7cd46b8a2e9dfb005125fcf7e6"
-        }
-      ]
-    },
-    {
-      "name": "@opentelemetry/sdk-trace",
-      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "versionInfo": "2.12.1",
-      "packageFileName": "node_modules/@opentelemetry/sdk-trace",
-      "description": "OpenTelemetry Tracing",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-trace/-/sdk-trace-2.12.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/sdk-trace",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-trace@2.12.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "bc035d9826279fe29afda9412b1c0808c9782a86be690065442f73019cbe220d4e6dba37459b76a22caffbcfe0113e6bac1058acedd89e23dc5dfc19acdd35ae"
-        }
-      ]
-    },
-    {
-      "name": "@opentelemetry/sdk-trace-base",
-      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "versionInfo": "2.12.1",
-      "packageFileName": "node_modules/@opentelemetry/sdk-trace-base",
-      "description": "OpenTelemetry Tracing",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-trace-base/-/sdk-trace-base-2.12.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-trace-base@2.12.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "08cadca85c538a46266100ae1d3a013b8910bd622c791936cedcd689d4dded5bad2318f5ae58ef2590999c53c910634e4bb16f6929912f6d497aebb7ff0ac201"
-        }
-      ]
-    },
-    {
-      "name": "@opentelemetry/semantic-conventions",
-      "SPDXID": "SPDXRef-Package-opentelemetry.semantic-conventions-1.45.0",
-      "versionInfo": "1.45.0",
-      "packageFileName": "node_modules/@opentelemetry/semantic-conventions",
-      "description": "OpenTelemetry semantic conventions",
-      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/semantic-conventions/-/semantic-conventions-1.45.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/semantic-conventions",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40opentelemetry/semantic-conventions@1.45.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "68e3f8e666dc38a6d056f1567d09a0a0e3d3f11da2c1b6db825f379380ae8c657d06b26116bdea1b9e4c169c05b3860b69ba6e5b71e1cd463d790c4f943a9a67"
+          "checksumValue": "94c9327acf221eb1be9a4e961fb5fbd0c7422c8d914b41703416353f243c51e99a8a31369b99afe40d0d8b2dc7b5b61316b82450442314c5e64809368500ee3d"
         }
       ]
     },
@@ -1715,11 +1523,11 @@
     },
     {
       "name": "@postalsys/certs",
-      "SPDXID": "SPDXRef-Package-postalsys.certs-2.0.5",
-      "versionInfo": "2.0.5",
+      "SPDXID": "SPDXRef-Package-postalsys.certs-3.0.1",
+      "versionInfo": "3.0.1",
       "packageFileName": "node_modules/@postalsys/certs",
       "description": "Manage Let's Encrypt certificates",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/certs/-/certs-2.0.5.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/certs/-/certs-3.0.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/postalsys/certs#readme",
       "licenseDeclared": "ISC",
@@ -1727,23 +1535,47 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/certs@2.0.5"
+          "referenceLocator": "pkg:npm/%40postalsys/certs@3.0.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "b01759c69fe564b7107b3549077ba1e7dd9d3954ebd05016f2e4dafbd177783bef711a8429db3e269a5032e8db011716dc7b900f0ce34841d5d6994a7ef6c4b4"
+          "checksumValue": "15d78555364ba92d6d9325d7188ba499432fb75b689ff9aba869587d719bd4432fa89ade4e5f2d5c92de270e96015e66a12a922d66988fcd425a716e99df19f1"
+        }
+      ]
+    },
+    {
+      "name": "undici",
+      "SPDXID": "SPDXRef-Package-undici-8.13.0",
+      "versionInfo": "8.13.0",
+      "packageFileName": "node_modules/@postalsys/certs/node_modules/undici",
+      "description": "An HTTP/1.1 client, written from scratch for Node.js",
+      "downloadLocation": "https://registry.npmjs.org/undici/-/undici-8.13.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://undici.nodejs.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/undici@8.13.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9b16dec91951847513584d737ff1700ce5d328c844d6f310473fe8da83a2affe5f216b01efd4de66b0723248f4d7d11d0eec4f834de3a6b0a314bc4b926c5309"
         }
       ]
     },
     {
       "name": "@postalsys/email-ai-tools",
-      "SPDXID": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
-      "versionInfo": "2.4.3",
+      "SPDXID": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
+      "versionInfo": "3.0.3",
       "packageFileName": "node_modules/@postalsys/email-ai-tools",
       "description": "Summarize and risk-score email messages with an OpenAI-compatible chat model",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-ai-tools/-/email-ai-tools-2.4.3.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-ai-tools/-/email-ai-tools-3.0.3.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/postalsys/email-ai-tools#readme",
       "licenseDeclared": "MIT",
@@ -1751,23 +1583,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/email-ai-tools@2.4.3"
+          "referenceLocator": "pkg:npm/%40postalsys/email-ai-tools@3.0.3"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "1ce4897e1cb2a325cbf2c2d5abbc221e80ebc3bcf466d78edd05ee7e512429ab79a2207c883a31c319ec7b7b9a9c4e9cc055b878f0f5d116eff1e163128cfdd6"
+          "checksumValue": "37ccadab24326a9374389725fe41453a043ad0e7fe86e6e4b1ef973eb6e3f3007e5d12953979295fcdc91e8570932191909216966c61bf2f64b509ee2e14b652"
         }
       ]
     },
     {
       "name": "@postalsys/email-content",
-      "SPDXID": "SPDXRef-Package-postalsys.email-content-0.1.21",
-      "versionInfo": "0.1.21",
+      "SPDXID": "SPDXRef-Package-postalsys.email-content-0.1.22",
+      "versionInfo": "0.1.22",
       "packageFileName": "node_modules/@postalsys/email-content",
       "description": "Extract conversationally relevant content from arbitrary email messages",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-content/-/email-content-0.1.21.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-content/-/email-content-0.1.22.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/postalsys/email-content#readme",
       "licenseDeclared": "MIT",
@@ -1775,23 +1607,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/email-content@0.1.21"
+          "referenceLocator": "pkg:npm/%40postalsys/email-content@0.1.22"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "ceb5043af709b67039bf7100224d5f17d669d8aea9f632471ef1a82ada78aae540fcc96dfdd2847ffde3c1ffb334e54e2a09d9779918bc4d0ddf2fd8f40ce933"
+          "checksumValue": "8b19b626eccd3d363126f720ea2269633829efa3224fb8dfc5cc57401e1ed1e9b29c30827b759dbbac7799bd3aa3b11731cc82123ca174068c76bd1287414214"
         }
       ]
     },
     {
       "name": "@postalsys/email-text-tools",
-      "SPDXID": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
-      "versionInfo": "2.6.4",
+      "SPDXID": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
+      "versionInfo": "3.1.1",
       "packageFileName": "node_modules/@postalsys/email-text-tools",
       "description": "Email text tools",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-text-tools/-/email-text-tools-2.6.4.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/email-text-tools/-/email-text-tools-3.1.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/postalsys/email-text-tools#readme",
       "licenseDeclared": "MIT",
@@ -1799,23 +1631,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/email-text-tools@2.6.4"
+          "referenceLocator": "pkg:npm/%40postalsys/email-text-tools@3.1.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "1787dcbbb65b84b6b1afb72d99fc57025423ee366d8ee2e3fa92db9d891ce33979835e5ed0bcd42c03b91c26091797568aeaff13058bb4e5ae4010ade5f17e8c"
+          "checksumValue": "e28a44aa6efc709243d9f66c0dde15cdb545287aab831c36f8c4fb02704bcdbfacb2a5cc0eb948f0df7780829d801ba59b6525557490e58f415fcd99bc1f42fe"
         }
       ]
     },
     {
       "name": "@postalsys/gettext",
-      "SPDXID": "SPDXRef-Package-postalsys.gettext-4.3.0",
-      "versionInfo": "4.3.0",
+      "SPDXID": "SPDXRef-Package-postalsys.gettext-4.3.2",
+      "versionInfo": "4.3.2",
       "packageFileName": "node_modules/@postalsys/gettext",
       "description": "A JavaScript implementation of gettext, a localization framework",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/gettext/-/gettext-4.3.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/gettext/-/gettext-4.3.2.tgz",
       "filesAnalyzed": false,
       "homepage": "http://github.com/postalsys/gettext",
       "licenseDeclared": "MIT",
@@ -1823,13 +1655,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/gettext@4.3.0"
+          "referenceLocator": "pkg:npm/%40postalsys/gettext@4.3.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "b4de4fed1fba0f17d489f23d4c092765af70908841045d7f6bd0ed7d23a596ebba734a14e9b7e7c44ed46a9e41dea6144ccdfa6cc404f0091348cc963bd4785b"
+          "checksumValue": "0a4287b1213f71963d0e1c67e6fbdd276e8b29d65c55baf58ea559d0ffa894e50436433eed24f4c24ecb4392eed9f81f11ba8f3427fb4a120393a84975a35d77"
         }
       ]
     },
@@ -1859,11 +1691,11 @@
     },
     {
       "name": "@postalsys/templates",
-      "SPDXID": "SPDXRef-Package-postalsys.templates-2.1.1",
-      "versionInfo": "2.1.1",
+      "SPDXID": "SPDXRef-Package-postalsys.templates-3.0.0",
+      "versionInfo": "3.0.0",
       "packageFileName": "node_modules/@postalsys/templates",
       "description": "Template language for EmailEngine",
-      "downloadLocation": "https://registry.npmjs.org/@postalsys/templates/-/templates-2.1.1.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@postalsys/templates/-/templates-3.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "ISC",
@@ -1871,13 +1703,37 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40postalsys/templates@2.1.1"
+          "referenceLocator": "pkg:npm/%40postalsys/templates@3.0.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "525a6dc4b67cf3e129f6bcb2c163c7b150764dc0d912c5d2c5c37dcd621b9fdd01e00eeddf65e3085b5565d428e4112533e5f219bdd9d75485a74a5a430773a5"
+          "checksumValue": "3b4781b34d045783572811566b5001265a8069ff895e2937c8aceb4c3176811e772ae3d5f0e5ec3f1499fc3383df3bf827baff6df4a8b7967941aa8af0213753"
+        }
+      ]
+    },
+    {
+      "name": "@prometheus-io/client",
+      "SPDXID": "SPDXRef-Package-prometheus-io.client-0.16.1",
+      "versionInfo": "0.16.1",
+      "packageFileName": "node_modules/@prometheus-io/client",
+      "description": "Client for prometheus",
+      "downloadLocation": "https://registry.npmjs.org/@prometheus-io/client/-/client-0.16.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/prometheus/client_js",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40prometheus-io/client@0.16.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "5e414fb06146a12b3f50c83fbe1d102c3a5a9e5fedb2b395e4f2c776919ef07a3e8abfcb961cadaf5e63eb2f19c0bae9206ccaf604d556921a940e82e148d467"
         }
       ]
     },
@@ -1907,10 +1763,10 @@
     },
     {
       "name": "@sentry/conventions",
-      "SPDXID": "SPDXRef-Package-sentry.conventions-0.16.0",
-      "versionInfo": "0.16.0",
+      "SPDXID": "SPDXRef-Package-sentry.conventions-0.35.0",
+      "versionInfo": "0.35.0",
       "packageFileName": "node_modules/@sentry/conventions",
-      "downloadLocation": "https://registry.npmjs.org/@sentry/conventions/-/conventions-0.16.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@sentry/conventions/-/conventions-0.35.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/getsentry/sentry-conventions#readme",
       "licenseDeclared": "MIT",
@@ -1918,23 +1774,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sentry/conventions@0.16.0"
+          "referenceLocator": "pkg:npm/%40sentry/conventions@0.35.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "7cef4f2e61dd55445c48f52958222d580b602a233019d2476e8be8484c8ba655f9b31b36ba0bc8e0204f4eb92482a84e6e764e0f40a7581283cd2550601284c9"
+          "checksumValue": "6ead9e72eeb36819e2d201b96c737d718edf994b0e5b8f67b63199e9503af4f5406b5524d4dbe017549d4c6a150b4ce4a902b38939f1cceb3d2aeb959696f6eb"
         }
       ]
     },
     {
       "name": "@sentry/core",
-      "SPDXID": "SPDXRef-Package-sentry.core-10.78.0",
-      "versionInfo": "10.78.0",
+      "SPDXID": "SPDXRef-Package-sentry.core-11.17.0",
+      "versionInfo": "11.17.0",
       "packageFileName": "node_modules/@sentry/core",
       "description": "Base implementation for all Sentry JavaScript SDKs",
-      "downloadLocation": "https://registry.npmjs.org/@sentry/core/-/core-10.78.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@sentry/core/-/core-11.17.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/getsentry/sentry-javascript/tree/master/packages/core",
       "licenseDeclared": "MIT",
@@ -1942,133 +1798,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sentry/core@10.78.0"
+          "referenceLocator": "pkg:npm/%40sentry/core@11.17.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "30c478304f9a82b8dbbd0d03b53609272a66f90942a33f5426058df208dc5ea9720e3624ebd2f03e39daa1c60dd49c90332d9dc791e4e12fd1b75da04d0e5c1b"
-        }
-      ]
-    },
-    {
-      "name": "@sentry/node-core",
-      "SPDXID": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "versionInfo": "10.78.0",
-      "packageFileName": "node_modules/@sentry/node-core",
-      "description": "Sentry Node-Core SDK",
-      "downloadLocation": "https://registry.npmjs.org/@sentry/node-core/-/node-core-10.78.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/getsentry/sentry-javascript/tree/master/packages/node-core",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sentry/node-core@10.78.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "1c9de4ef120d062893cdcfd068844776de6e81cb5562d7199e3aee4f115adad5c5252258855b60084f83ccb4a41d76d5025552feb8a500c19c3bd194888a964d"
-        }
-      ]
-    },
-    {
-      "name": "@sentry/opentelemetry",
-      "SPDXID": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "versionInfo": "10.78.0",
-      "packageFileName": "node_modules/@sentry/opentelemetry",
-      "description": "Official Sentry utilities for OpenTelemetry",
-      "downloadLocation": "https://registry.npmjs.org/@sentry/opentelemetry/-/opentelemetry-10.78.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/getsentry/sentry-javascript/tree/master/packages/opentelemetry",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sentry/opentelemetry@10.78.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "b38eeea8d687adeb3a8a388cb1aa08ebf0d17aff34bd4a93a91324d2efc37c5f71009b6d2bb80e1aa641112af4603d815c0db53beb143ec3de5ae1e560789270"
-        }
-      ]
-    },
-    {
-      "name": "@sideway/address",
-      "SPDXID": "SPDXRef-Package-sideway.address-4.1.5",
-      "versionInfo": "4.1.5",
-      "packageFileName": "node_modules/@sideway/address",
-      "description": "Email address and domain validation",
-      "downloadLocation": "https://registry.npmjs.org/@sideway/address/-/address-4.1.5.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sideway/address@4.1.5"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "22a3bf0d44075243de8b1350f27d0903ad74da14fd0a66a58cd4cf990d6ef0c121068fd1e10f1e28b37fbc6671b9e6f03aba0307871ba6385e0f8fbfb0a14ae1"
-        }
-      ]
-    },
-    {
-      "name": "@sideway/formula",
-      "SPDXID": "SPDXRef-Package-sideway.formula-3.0.1",
-      "versionInfo": "3.0.1",
-      "packageFileName": "node_modules/@sideway/formula",
-      "description": "Math and string formula parser.",
-      "downloadLocation": "https://registry.npmjs.org/@sideway/formula/-/formula-3.0.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sideway/formula@3.0.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "fe9a076492558f1dcbfb3543ea0f4a8077d89dbe38de88bbc0bbbf5caa230ef887cba1ce10e03acf54eb939691d5d19c98f7a724481bdac2b623cd0b792dcc22"
-        }
-      ]
-    },
-    {
-      "name": "@sideway/pinpoint",
-      "SPDXID": "SPDXRef-Package-sideway.pinpoint-2.0.0",
-      "versionInfo": "2.0.0",
-      "packageFileName": "node_modules/@sideway/pinpoint",
-      "description": "Return the filename and line number of the calling function",
-      "downloadLocation": "https://registry.npmjs.org/@sideway/pinpoint/-/pinpoint-2.0.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40sideway/pinpoint@2.0.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "44d88ea133e4a6d16d495cd07af63fc96b59c1ffd1c725673f2fce700f4704cdcc9460e704460be41e351f43139f451e73c1e2fb6a94b537c6d9659906631e8d"
+          "checksumValue": "4dff5738110c78675964d68207315393594dfeaf60cd29d6b67351656f4862da2433df5555fc78c135957a0eaa67ef9cea63726e68546e5b6737b6fced1a8ec1"
         }
       ]
     },
@@ -2146,11 +1882,11 @@
     },
     {
       "name": "@zone-eu/mailsplit",
-      "SPDXID": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
-      "versionInfo": "5.4.30",
+      "SPDXID": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
+      "versionInfo": "5.4.31",
       "packageFileName": "node_modules/@zone-eu/mailsplit",
       "description": "Split email messages into an object stream",
-      "downloadLocation": "https://registry.npmjs.org/@zone-eu/mailsplit/-/mailsplit-5.4.30.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@zone-eu/mailsplit/-/mailsplit-5.4.31.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "(MIT OR EUPL-1.1+)",
@@ -2158,13 +1894,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40zone-eu/mailsplit@5.4.30"
+          "referenceLocator": "pkg:npm/%40zone-eu/mailsplit@5.4.31"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "a8dd0a4faff388016fa394f3b1c6aaa6eac825a2501173cfb6a0599e9ca1886ac008e28b0d5315e8b9b9ee45ede5effccd9516a188920bca0a97f69ec2dac90d"
+          "checksumValue": "3f4df549eca86f05c4fda65fd5ffe137d4599bfb7c65289b094600ed4b3a168af2e1bd69e47c4d100d3c61c7d3ca790f9ef2779c58cc160bb04a9df44d77384f"
         }
       ]
     },
@@ -2189,30 +1925,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "faf1efbdaf27027eb86f5ded752b93e38d1a20c9429f7161cced0ed8aba8372c91a74d0bf7b142bb306bf29d86b0c595377fdc350c05e3d53c6aaafe07e61a96"
-        }
-      ]
-    },
-    {
-      "name": "ansi-colors",
-      "SPDXID": "SPDXRef-Package-ansi-colors-4.1.3",
-      "versionInfo": "4.1.3",
-      "packageFileName": "node_modules/ansi-colors",
-      "description": "Easily add ANSI colors to your text and symbols in the terminal. A faster drop-in replacement for chalk, kleur and turbocolor (without the dependencies and rendering bugs).",
-      "downloadLocation": "https://registry.npmjs.org/ansi-colors/-/ansi-colors-4.1.3.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/doowb/ansi-colors",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/ansi-colors@4.1.3"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "ffac3f0b6d4f9b503b6998ad948e4d8bfd89e8515037c8b50afcf79070010006f0f77bff365bca7553aacfb0825b3ff78affc9a6545210467cdd720e375e68bf"
         }
       ]
     },
@@ -2290,11 +2002,11 @@
     },
     {
       "name": "bullmq",
-      "SPDXID": "SPDXRef-Package-bullmq-6.7.3",
-      "versionInfo": "6.7.3",
+      "SPDXID": "SPDXRef-Package-bullmq-6.7.10",
+      "versionInfo": "6.7.10",
       "packageFileName": "node_modules/bullmq",
       "description": "Queue for messages and jobs based on Redis",
-      "downloadLocation": "https://registry.npmjs.org/bullmq/-/bullmq-6.7.3.tgz",
+      "downloadLocation": "https://registry.npmjs.org/bullmq/-/bullmq-6.7.10.tgz",
       "filesAnalyzed": false,
       "homepage": "https://bullmq.io/",
       "licenseDeclared": "MIT",
@@ -2302,85 +2014,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/bullmq@6.7.3"
+          "referenceLocator": "pkg:npm/bullmq@6.7.10"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "d1139c86a561809c366a3bfad86acdd5c18ca4369bc694c9029e590e59bfa8bedff81f8274524072eef4537cdb0ff0f785ce8d6716dd1ef44c3d30b468497bec"
-        }
-      ]
-    },
-    {
-      "name": "cheerio",
-      "SPDXID": "SPDXRef-Package-cheerio-1.2.0",
-      "versionInfo": "1.2.0",
-      "packageFileName": "node_modules/cheerio",
-      "description": "The fast, flexible & elegant library for parsing and manipulating HTML and XML.",
-      "downloadLocation": "https://registry.npmjs.org/cheerio/-/cheerio-1.2.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://cheerio.js.org/",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/cheerio@1.2.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "583af26dcfe0285a53610bad2882ba52f7dcbb18a32197cc7d76989bc34cb0f431498bdffb5ddf5d4278af3b4619b25c050fc6179e60beb67405cd1b8ff9aabe"
-        }
-      ]
-    },
-    {
-      "name": "cheerio-select",
-      "SPDXID": "SPDXRef-Package-cheerio-select-2.1.0",
-      "versionInfo": "2.1.0",
-      "packageFileName": "node_modules/cheerio-select",
-      "description": "CSS selector engine supporting jQuery selectors",
-      "downloadLocation": "https://registry.npmjs.org/cheerio-select/-/cheerio-select-2.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-2-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/cheerio-select@2.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "f6ff641b42efceb95cba782d9c9b6918dc58f9fcc40902a12b8106257daf0727a388c5fce0c14d430e14c4f265ddb15b4ccc3e0dfb37ed7688902c1365f2e1e2"
-        }
-      ]
-    },
-    {
-      "name": "cjs-module-lexer",
-      "SPDXID": "SPDXRef-Package-cjs-module-lexer-2.3.0",
-      "versionInfo": "2.3.0",
-      "packageFileName": "node_modules/cjs-module-lexer",
-      "description": "Lexes CommonJS modules, returning their named exports metadata",
-      "downloadLocation": "https://registry.npmjs.org/cjs-module-lexer/-/cjs-module-lexer-2.3.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/nodejs/cjs-module-lexer#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/cjs-module-lexer@2.3.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "9663720738ba8988aacab1314dcb5f9a377cb489f1f9d1eef4f0689937c7e515d2e77736ec9305260ccdbf94f20279b73e019ff8c2f2d3e5ace35fc7955c5d29"
+          "checksumValue": "19dfb3edbaa93b659e4eda25f2ad353a921fda458bad525ca6f24662c07c73f19e2d981e5ba7b3c9e8380c8b3bbbcf8b4c9b75cbc5cc23604f9885e58057bbc6"
         }
       ]
     },
@@ -2409,36 +2049,12 @@
       ]
     },
     {
-      "name": "commander",
-      "SPDXID": "SPDXRef-Package-commander-12.1.0",
-      "versionInfo": "12.1.0",
-      "packageFileName": "node_modules/commander",
-      "description": "the complete solution for node.js command-line programs",
-      "downloadLocation": "https://registry.npmjs.org/commander/-/commander-12.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/commander@12.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "570f2a1caddb64cf72fcfd74bb75626fca3f0dd92f0363ad3ed66f0fcef540a8f2ef85a3d5648a1482cc3d13d27544b1e5114ad5aae527312d0383e41609dbb8"
-        }
-      ]
-    },
-    {
       "name": "cron-parser",
-      "SPDXID": "SPDXRef-Package-cron-parser-5.10.4",
-      "versionInfo": "5.10.4",
+      "SPDXID": "SPDXRef-Package-cron-parser-5.10.6",
+      "versionInfo": "5.10.6",
       "packageFileName": "node_modules/cron-parser",
       "description": "Node.js library for parsing crontab instructions",
-      "downloadLocation": "https://registry.npmjs.org/cron-parser/-/cron-parser-5.10.4.tgz",
+      "downloadLocation": "https://registry.npmjs.org/cron-parser/-/cron-parser-5.10.6.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -2446,13 +2062,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/cron-parser@5.10.4"
+          "referenceLocator": "pkg:npm/cron-parser@5.10.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "4da80da98ce857f0bb4f2ed50108eb420fb9ed6b043ae404521d2d593e4373e97f18eba801d595233154d02a98750b30a9d8d46a5add98ebda32d42112b6194c"
+          "checksumValue": "929a31810caf78ed65dbd9f0f8559dbe6a2dc95ede392cc61d0a718973846480ce8ea3b5891ea47e02743d51d3b95dbab817a62aade9a7399aedd1c5006eef8b"
         }
       ]
     },
@@ -2578,11 +2194,11 @@
     },
     {
       "name": "dompurify",
-      "SPDXID": "SPDXRef-Package-dompurify-3.4.17",
-      "versionInfo": "3.4.17",
+      "SPDXID": "SPDXRef-Package-dompurify-3.4.18",
+      "versionInfo": "3.4.18",
       "packageFileName": "node_modules/dompurify",
       "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It runs as JavaScript and works in all modern browsers, as well as in Node.js (via jsdom). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-      "downloadLocation": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.17.tgz",
+      "downloadLocation": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.18.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/cure53/DOMPurify",
       "licenseDeclared": "(MPL-2.0 OR Apache-2.0)",
@@ -2590,37 +2206,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/dompurify@3.4.17"
+          "referenceLocator": "pkg:npm/dompurify@3.4.18"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "07fa52958547439f24a88483ff20e3b89d727f3237e26d60178940a1dd9bc1246188de0ae429771fc01fee1a81d8f9932fdd75b5d12e7679d79f9167851a33d3"
-        }
-      ]
-    },
-    {
-      "name": "dotenv",
-      "SPDXID": "SPDXRef-Package-dotenv-18.0.10",
-      "versionInfo": "18.0.10",
-      "packageFileName": "node_modules/dotenv",
-      "description": "Loads environment variables from .env file",
-      "downloadLocation": "https://registry.npmjs.org/dotenv/-/dotenv-18.0.10.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/motdotla/dotenv#readme",
-      "licenseDeclared": "BSD-2-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/dotenv@18.0.10"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "f3d140035c5c8732b69b155676be45ff4ae57708ae797b3acc933ceab3bae84cde911d6205d89746d8721be9b91af9096851f70b62c44b36a64e48277662d3d8"
+          "checksumValue": "a1f7b7c08fee366ebc1c89c005814962a431470d4468a02335dac554aaa3518f9466eaef35dd8bfc7b907b4f7bb3fe118af5a26723fab53edaa13f1ab637e1c2"
         }
       ]
     },
@@ -2649,108 +2241,12 @@
       ]
     },
     {
-      "name": "encoding-sniffer",
-      "SPDXID": "SPDXRef-Package-encoding-sniffer-0.2.1",
-      "versionInfo": "0.2.1",
-      "packageFileName": "node_modules/encoding-sniffer",
-      "description": "Implementation of the HTML encoding sniffer algo, with stream support",
-      "downloadLocation": "https://registry.npmjs.org/encoding-sniffer/-/encoding-sniffer-0.2.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/encoding-sniffer@0.2.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e60beadb44fabdfa5e915b6aad842c482159d70120e7ec16d3f41a64c5a416be81a83dcd7cab34acb0b1e2bad59525897996f934126054bb302bfc3631653e1b"
-        }
-      ]
-    },
-    {
-      "name": "iconv-lite",
-      "SPDXID": "SPDXRef-Package-iconv-lite-0.6.3",
-      "versionInfo": "0.6.3",
-      "packageFileName": "node_modules/encoding-sniffer/node_modules/iconv-lite",
-      "description": "Convert character encodings in pure javascript.",
-      "downloadLocation": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/ashtuchkin/iconv-lite",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/iconv-lite@0.6.3"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e1f0a4efdc2c84c773329dab1f4eaa5ab244e22a25a8b842507f8e8ae22053ef91074fbde0d9432fcd5ab4eec65f9e6e50ab9ea34b711cdb6f13223a0fb59d33"
-        }
-      ]
-    },
-    {
-      "name": "es-module-lexer",
-      "SPDXID": "SPDXRef-Package-es-module-lexer-3.0.4",
-      "versionInfo": "3.0.4",
-      "packageFileName": "node_modules/es-module-lexer",
-      "description": "Lexes ES modules returning their import/export metadata",
-      "downloadLocation": "https://registry.npmjs.org/es-module-lexer/-/es-module-lexer-3.0.4.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/guybedford/es-module-lexer#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/es-module-lexer@3.0.4"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "06574d6399b0915bbe710e589a7ddeea107d4b1f171f1e197af59b894c996df2b127160edbb1dfd307f393121a0f908024c68697762ca4a10b8f47dfffb9c230"
-        }
-      ]
-    },
-    {
-      "name": "escape-goat",
-      "SPDXID": "SPDXRef-Package-escape-goat-3.0.0",
-      "versionInfo": "3.0.0",
-      "packageFileName": "node_modules/escape-goat",
-      "description": "Escape a string for use in HTML or the inverse",
-      "downloadLocation": "https://registry.npmjs.org/escape-goat/-/escape-goat-3.0.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/escape-goat@3.0.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "c373f0359270471969e3b406ce1b84065744a951c7861f3fb483dc97a79c7f6068bbdf5c740b749278a1055d0471cec21b161db975410e1787d4ada8003465bf"
-        }
-      ]
-    },
-    {
       "name": "fast-xml-builder",
-      "SPDXID": "SPDXRef-Package-fast-xml-builder-1.3.1",
-      "versionInfo": "1.3.1",
+      "SPDXID": "SPDXRef-Package-fast-xml-builder-1.3.2",
+      "versionInfo": "1.3.2",
       "packageFileName": "node_modules/fast-xml-builder",
       "description": "Build XML from JSON without C/C++ based libraries",
-      "downloadLocation": "https://registry.npmjs.org/fast-xml-builder/-/fast-xml-builder-1.3.1.tgz",
+      "downloadLocation": "https://registry.npmjs.org/fast-xml-builder/-/fast-xml-builder-1.3.2.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -2758,23 +2254,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/fast-xml-builder@1.3.1"
+          "referenceLocator": "pkg:npm/fast-xml-builder@1.3.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "a4833fd67de7b455ca62b519c16ed008ad20016ed763ec338f560c215ded2c3bcf8ff57ecd31892b97b7ff85897f08f4a96c361253578938b175afd1fb7612ba"
+          "checksumValue": "397f7555295284b3c3811655eed93f610e25f2d4fbe50ce217923183c8383c56c254f8ee4d6c0dfb241f0312c9d1db9f269a6b74e77a1e533be0985ddfd4dc05"
         }
       ]
     },
     {
       "name": "fast-xml-parser",
-      "SPDXID": "SPDXRef-Package-fast-xml-parser-5.12.0",
-      "versionInfo": "5.12.0",
+      "SPDXID": "SPDXRef-Package-fast-xml-parser-5.12.1",
+      "versionInfo": "5.12.1",
       "packageFileName": "node_modules/fast-xml-parser",
       "description": "Validate XML, Parse XML, Build XML without C/C++ based libraries",
-      "downloadLocation": "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-5.12.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-5.12.1.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -2782,13 +2278,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/fast-xml-parser@5.12.0"
+          "referenceLocator": "pkg:npm/fast-xml-parser@5.12.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "fe95f1441b70c58f70f33ed86e0b2f20f3dc3ef143b136c8916c134098733493e8923f936cde9fb6672fe23fe91100ef3823672860f3ba4e41a36a288083a216"
+          "checksumValue": "c11f1d3bf7f1fb3f02e5ec6e7a6d5eec128e5af8ecbb3be34bfb6f03f5eedd9d7342a246717acfcd76dc02268c829d8a8eb78444e7139269e78acadc989da161"
         }
       ]
     },
@@ -2914,11 +2410,11 @@
     },
     {
       "name": "imapflow",
-      "SPDXID": "SPDXRef-Package-imapflow-2.11.0",
-      "versionInfo": "2.11.0",
+      "SPDXID": "SPDXRef-Package-imapflow-2.12.2",
+      "versionInfo": "2.12.2",
       "packageFileName": "node_modules/imapflow",
       "description": "IMAP Client for Node",
-      "downloadLocation": "https://registry.npmjs.org/imapflow/-/imapflow-2.11.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/imapflow/-/imapflow-2.12.2.tgz",
       "filesAnalyzed": false,
       "homepage": "https://imapflow.com/",
       "licenseDeclared": "MIT",
@@ -2926,37 +2422,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/imapflow@2.11.0"
+          "referenceLocator": "pkg:npm/imapflow@2.12.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "26ffcf0416c1b0a8c191d3790d46c42d10a8ed79b70d0cfe818064032e21f3b39b42d85345dee7bb9dd657f74a0dfd8cf229a825963e79014156440025a802ea"
-        }
-      ]
-    },
-    {
-      "name": "import-in-the-middle",
-      "SPDXID": "SPDXRef-Package-import-in-the-middle-3.6.0",
-      "versionInfo": "3.6.0",
-      "packageFileName": "node_modules/import-in-the-middle",
-      "description": "Intercept imports in Node.js",
-      "downloadLocation": "https://registry.npmjs.org/import-in-the-middle/-/import-in-the-middle-3.6.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/nodejs/import-in-the-middle#readme",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/import-in-the-middle@3.6.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "c5153b848db84b6161b9c5edb995e7f04a5c3a37d53fa8a2110c91d1449ac8f79a3aba04992b0d96a9e5f79f3aea245d46d907adde90fd9e03d7847ad1abb4f8"
+          "checksumValue": "1a771c377af2b699ac6c4ae2622dd1d602ea5a75c7d83a78880598718dec014351676ce9073f2a481d184834dae7c35279303a5469403cc7db6ae428d209d418"
         }
       ]
     },
@@ -2985,10 +2457,34 @@
       ]
     },
     {
+      "name": "@ioredis/commands",
+      "SPDXID": "SPDXRef-Package-ioredis.commands-2.0.0",
+      "versionInfo": "2.0.0",
+      "packageFileName": "node_modules/ioredfour/node_modules/@ioredis/commands",
+      "description": "Redis commands",
+      "downloadLocation": "https://registry.npmjs.org/@ioredis/commands/-/commands-2.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/ioredis/commands",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40ioredis/commands@2.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "bebc74004fd3d21edc459c1fa35337f42afe66166b91fd15f2640def9c2e70a0b108b0fd97f557ea7a37805beb2ea0f52251bfd4bb735a8bea130dedd15afdce"
+        }
+      ]
+    },
+    {
       "name": "ioredis",
       "SPDXID": "SPDXRef-Package-ioredis-6.0.0",
       "versionInfo": "6.0.0",
-      "packageFileName": "node_modules/ioredis",
+      "packageFileName": "node_modules/ioredfour/node_modules/ioredis",
       "description": "A robust, performance-focused and full-featured Redis client for Node.js.",
       "downloadLocation": "https://registry.npmjs.org/ioredis/-/ioredis-6.0.0.tgz",
       "filesAnalyzed": false,
@@ -3005,6 +2501,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "7fe0edb9bc5fa5fe8a605abb5955c9a0e2e7d1b9384c9accacdf52cde13e8eb5ab0968fb5d7ddf03abe4af269f8400d7f86332991c600c90ce237dc23a425cd3"
+        }
+      ]
+    },
+    {
+      "name": "ioredis",
+      "SPDXID": "SPDXRef-Package-ioredis-6.1.0",
+      "versionInfo": "6.1.0",
+      "packageFileName": "node_modules/ioredis",
+      "description": "A robust, performance-focused and full-featured Redis client for Node.js.",
+      "downloadLocation": "https://registry.npmjs.org/ioredis/-/ioredis-6.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "NOASSERTION",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ioredis@6.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d28a16528c4489611c080d05141b260a76079e38858163d0c00d78e0dc694332c85645b6d095230282ad320fbbb29167fba38023af17c2970b706296e717b850"
         }
       ]
     },
@@ -3057,30 +2577,6 @@
       ]
     },
     {
-      "name": "ipv6-normalize",
-      "SPDXID": "SPDXRef-Package-ipv6-normalize-1.0.1",
-      "versionInfo": "1.0.1",
-      "packageFileName": "node_modules/ipv6-normalize",
-      "description": "ipv6-normalize",
-      "downloadLocation": "https://registry.npmjs.org/ipv6-normalize/-/ipv6-normalize-1.0.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/poying/ipv6-normalize",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/ipv6-normalize@1.0.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "066e87efd8b4d438e01930968d4b828c9e900e8d4707de8f4ffc4262ec8950ff5615b543acb49b1b81190af382ba7dab36cc196f47377b826dff0b3bf797ac1c"
-        }
-      ]
-    },
-    {
       "name": "is-unsafe",
       "SPDXID": "SPDXRef-Package-is-unsafe-2.0.3",
       "versionInfo": "2.0.3",
@@ -3125,30 +2621,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "8948af029298c391a9666ab64b2e8497df63ee7a28f1049415997242daf71c2928b02fdbe70285ebf637b5e88722568cf16237f2c013dcffb9d6b07496102124"
-        }
-      ]
-    },
-    {
-      "name": "juice",
-      "SPDXID": "SPDXRef-Package-juice-11.1.1",
-      "versionInfo": "11.1.1",
-      "packageFileName": "node_modules/juice",
-      "description": "Inlines css into html source",
-      "downloadLocation": "https://registry.npmjs.org/juice/-/juice-11.1.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/juice@11.1.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e1205f66a29c73a0eb212fb96ff5a21a859a66c7543c11fe7ba49b46536326968846d7e8061611780b686c8116ea670b7851435cb04932e6709092e40498ecdb"
         }
       ]
     },
@@ -3202,11 +2674,11 @@
     },
     {
       "name": "libmime",
-      "SPDXID": "SPDXRef-Package-libmime-5.6.4",
-      "versionInfo": "5.6.4",
+      "SPDXID": "SPDXRef-Package-libmime-5.6.5",
+      "versionInfo": "5.6.5",
       "packageFileName": "node_modules/libmime",
       "description": "Encode and decode quoted printable and base64 strings",
-      "downloadLocation": "https://registry.npmjs.org/libmime/-/libmime-5.6.4.tgz",
+      "downloadLocation": "https://registry.npmjs.org/libmime/-/libmime-5.6.5.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/nodemailer/libmime",
       "licenseDeclared": "MIT",
@@ -3214,23 +2686,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/libmime@5.6.4"
+          "referenceLocator": "pkg:npm/libmime@5.6.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "4168a2c2adee8c8512b020a314395d0cdec57d7b8b6124e71259f4a1e61f3a382ac9595157a590dd4c89fe96a0ba8cfc627c72d6cee4de487ac68992ddb2640b"
+          "checksumValue": "da66ca625c143f6996cacee4504d0c04735d3a774e7befbc4c8766197b6dfe131859281b8c7912217c82e230a955273fb00a31dc64b15a7d5d4a6ca242298b34"
         }
       ]
     },
     {
       "name": "libqp",
-      "SPDXID": "SPDXRef-Package-libqp-3.0.1",
-      "versionInfo": "3.0.1",
+      "SPDXID": "SPDXRef-Package-libqp-3.0.2",
+      "versionInfo": "3.0.2",
       "packageFileName": "node_modules/libqp",
       "description": "Encode and decode quoted-printable strings according to rfc2045",
-      "downloadLocation": "https://registry.npmjs.org/libqp/-/libqp-3.0.1.tgz",
+      "downloadLocation": "https://registry.npmjs.org/libqp/-/libqp-3.0.2.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/nodemailer/libqp",
       "licenseDeclared": "MIT",
@@ -3238,23 +2710,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/libqp@3.0.1"
+          "referenceLocator": "pkg:npm/libqp@3.0.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "ed0671a4f5f6e6981ad5688cb9e76e5b19ab1cc54116b64f1fa6546a8cc661afc7f7c247e8d5414844f7a95c3ee0dc73a2b6885bbac9f35631494f486a5bc2a6"
+          "checksumValue": "db8a0be6f08ca4577a9462db0f7bcfae67001061527033d7f5e01163c4d7b1154149d7bddf13f6886efef29839339e988aef54cb5e2109537513eca3e4b32dc9"
         }
       ]
     },
     {
       "name": "linkify-it",
-      "SPDXID": "SPDXRef-Package-linkify-it-5.0.2",
-      "versionInfo": "5.0.2",
+      "SPDXID": "SPDXRef-Package-linkify-it-6.1.0",
+      "versionInfo": "6.1.0",
       "packageFileName": "node_modules/linkify-it",
       "description": "Links recognition library with FULL unicode support",
-      "downloadLocation": "https://registry.npmjs.org/linkify-it/-/linkify-it-5.0.2.tgz",
+      "downloadLocation": "https://registry.npmjs.org/linkify-it/-/linkify-it-6.1.0.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -3262,13 +2734,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/linkify-it@5.0.2"
+          "referenceLocator": "pkg:npm/linkify-it@6.1.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "38d4e6da308c0156638106bf172d6449c5ecb8ea05e4d3d3b28141744d4a548676bc087fafdf81aa8fb48c83420589dabd33d0673dfc43315399eefd10da0ddd"
+          "checksumValue": "c09fd3c294834cb7a90ab42861660813120a83965c85ec76367e729369859c1fba3ed7641edc8bc7be3699df5cb118e33a71a42884bf46b6d8ee5f03ea04fd57"
         }
       ]
     },
@@ -3322,11 +2794,11 @@
     },
     {
       "name": "mailparser",
-      "SPDXID": "SPDXRef-Package-mailparser-3.14.3",
-      "versionInfo": "3.14.3",
+      "SPDXID": "SPDXRef-Package-mailparser-3.15.0",
+      "versionInfo": "3.15.0",
       "packageFileName": "node_modules/mailparser",
       "description": "Parse e-mails",
-      "downloadLocation": "https://registry.npmjs.org/mailparser/-/mailparser-3.14.3.tgz",
+      "downloadLocation": "https://registry.npmjs.org/mailparser/-/mailparser-3.15.0.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -3334,13 +2806,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/mailparser@3.14.3"
+          "referenceLocator": "pkg:npm/mailparser@3.15.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "18568a476b4c4c300b44cf4f4370e47ce99678b6917ab8e27c48427546f898cdbe56d3be8d91613ccbd08afbccfc37ffe75a98987ee6b2bade79099d5a333693"
+          "checksumValue": "bc62af2f1ec7a7d184974bbe0bfed5d2ffabc98ab0524b1949f353bc8a81f0c337f40cd0e63ac5812c465dba54f6b55c0e4b788604435469de2267bda312dedc"
         }
       ]
     },
@@ -3369,30 +2841,6 @@
       ]
     },
     {
-      "name": "mensch",
-      "SPDXID": "SPDXRef-Package-mensch-0.3.4",
-      "versionInfo": "0.3.4",
-      "packageFileName": "node_modules/mensch",
-      "description": "A decent CSS parser",
-      "downloadLocation": "https://registry.npmjs.org/mensch/-/mensch-0.3.4.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/brettstimmerman/mensch",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/mensch@0.3.4"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "200785bdc3a757d574624f9b161611d3b3b7c8d8a76bd00d20de4ca1704a609fd12d83eeaddd9dd32c35e0c0e1a6bf7f9a89a9d16a1f4f56cf521de1933762fe"
-        }
-      ]
-    },
-    {
       "name": "mime-db",
       "SPDXID": "SPDXRef-Package-mime-db-1.54.0",
       "versionInfo": "1.54.0",
@@ -3413,30 +2861,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "694e4426e20dd960de982700a76bc505fa7f9b810085626750d492c348b1b3bfe45db77a3e0eb8126c0990d745841f1a5add6c1f60935eb2f1a3f880195de83d"
-        }
-      ]
-    },
-    {
-      "name": "module-details-from-path",
-      "SPDXID": "SPDXRef-Package-module-details-from-path-1.0.4",
-      "versionInfo": "1.0.4",
-      "packageFileName": "node_modules/module-details-from-path",
-      "description": "Resolve npm package details, like name and base path, given an absolute path to a file inside a package",
-      "downloadLocation": "https://registry.npmjs.org/module-details-from-path/-/module-details-from-path-1.0.4.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/watson/module-details-from-path#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/module-details-from-path@1.0.4"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "10658a83100b18c833bf1605d54c864f2d075d7ff6bc72e4c3af8dbc3296da3ca959b1e98d0ba3e1431ca905971c444985518a8a4a254f4e86ddb70a7b87e2ef"
         }
       ]
     },
@@ -3586,11 +3010,11 @@
     },
     {
       "name": "nodemailer",
-      "SPDXID": "SPDXRef-Package-nodemailer-10.5.0",
-      "versionInfo": "10.5.0",
+      "SPDXID": "SPDXRef-Package-nodemailer-10.6.1",
+      "versionInfo": "10.6.1",
       "packageFileName": "node_modules/nodemailer",
       "description": "Easy as cake e-mail sending from your Node.js applications",
-      "downloadLocation": "https://registry.npmjs.org/nodemailer/-/nodemailer-10.5.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/nodemailer/-/nodemailer-10.6.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://nodemailer.com/",
       "licenseDeclared": "MIT-0",
@@ -3598,109 +3022,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/nodemailer@10.5.0"
+          "referenceLocator": "pkg:npm/nodemailer@10.6.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "2ffc3f1c7e4caa9ccc0ee643edf41db7ff8aab29aebeba5a0296888c01f65c0dc82de3f095cbd709556f3fbe7156b5c212dda080ada66abaeb1c7141e50bb490"
-        }
-      ]
-    },
-    {
-      "name": "parse5",
-      "SPDXID": "SPDXRef-Package-parse5-7.3.0",
-      "versionInfo": "7.3.0",
-      "packageFileName": "node_modules/parse5",
-      "description": "HTML parser and serializer.",
-      "downloadLocation": "https://registry.npmjs.org/parse5/-/parse5-7.3.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://parse5.js.org",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/parse5@7.3.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "2089ef53b7da6e5df8aa68bd818f17395c61632332b87db150da5bdaaf3f63eef9e762a57a3911beabc3d7d9cca145bfb901866ea36903a4ee7eee452f905983"
-        }
-      ]
-    },
-    {
-      "name": "parse5-htmlparser2-tree-adapter",
-      "SPDXID": "SPDXRef-Package-parse5-htmlparser2-tree-adapter-7.1.0",
-      "versionInfo": "7.1.0",
-      "packageFileName": "node_modules/parse5-htmlparser2-tree-adapter",
-      "description": "htmlparser2 tree adapter for parse5.",
-      "downloadLocation": "https://registry.npmjs.org/parse5-htmlparser2-tree-adapter/-/parse5-htmlparser2-tree-adapter-7.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://parse5.js.org",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/parse5-htmlparser2-tree-adapter@7.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "aeec39c722acea5ae9a3dc7dac266a6599c8527b480a34007745ac9a9dfde9497d94dfe1fa27e0555d71d606478bc7ae7a3eb04dfa6a5fc8fe045431174352fe"
-        }
-      ]
-    },
-    {
-      "name": "parse5-parser-stream",
-      "SPDXID": "SPDXRef-Package-parse5-parser-stream-7.1.2",
-      "versionInfo": "7.1.2",
-      "packageFileName": "node_modules/parse5-parser-stream",
-      "description": "Streaming HTML parser with scripting support.",
-      "downloadLocation": "https://registry.npmjs.org/parse5-parser-stream/-/parse5-parser-stream-7.1.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/inikulin/parse5",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/parse5-parser-stream@7.1.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "27279073d8b014b9f94dbbefa8008817f5571ba69b383781dc5c26bff4c674b9362df6d691ac92198ef66ade3e4f2ec490f663f39e2ee02ac80aa364daa21ba3"
-        }
-      ]
-    },
-    {
-      "name": "entities",
-      "SPDXID": "SPDXRef-Package-entities-6.0.1",
-      "versionInfo": "6.0.1",
-      "packageFileName": "node_modules/parse5/node_modules/entities",
-      "description": "Encode & decode XML and HTML entities with ease & speed",
-      "downloadLocation": "https://registry.npmjs.org/entities/-/entities-6.0.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "BSD-2-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/entities@6.0.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "68df7b357585e805814da85f54e22b07f352864ce2e47ec5f6bd6cf660f77038f82a8e5fdaa86156860c89b5c5ec694bbde6ff0f68a859acbc97123ded57a7de"
+          "checksumValue": "77b91f15f4bfb51e0071af9206f45a43e31728dbfb77626245ee53c5a45c153fe460c8781863e75bd68a92c4c812fc846c0eddffb1d8584e183c3107c73263fe"
         }
       ]
     },
@@ -3845,30 +3173,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "a0290d563e0e2a728472871505c0df888ba0375fdc13aae07d3de70adcdea993c0f3eac8c4c690d315f322418ff068f6a9468fd5447bba1275543f25502a730a"
-        }
-      ]
-    },
-    {
-      "name": "prom-client",
-      "SPDXID": "SPDXRef-Package-prom-client-15.1.3",
-      "versionInfo": "15.1.3",
-      "packageFileName": "node_modules/prom-client",
-      "description": "Client for prometheus",
-      "downloadLocation": "https://registry.npmjs.org/prom-client/-/prom-client-15.1.3.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/siimon/prom-client",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/prom-client@15.1.3"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e9988e05f0b2c2c0f893504df485f4b99845fad26457cabc9653fae06e476a3b3824e7952cf0b0a4f55ca57cb7070622506832273b0925078e22fefe8434aaf2"
         }
       ]
     },
@@ -4161,30 +3465,6 @@
       ]
     },
     {
-      "name": "slick",
-      "SPDXID": "SPDXRef-Package-slick-1.12.2",
-      "versionInfo": "1.12.2",
-      "packageFileName": "node_modules/slick",
-      "description": "Standalone CSS Selector Finder and Parser.",
-      "downloadLocation": "https://registry.npmjs.org/slick/-/slick-1.12.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/kamicane/slick",
-      "licenseDeclared": "MIT (http://mootools.net/license.txt)",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/slick@1.12.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e2a76d3867018eb6a5e9820109627496315228d2f3f4a9216d6b6e1af532468c25d64c5fb84d71fd9fda25c6a28a5a5bddda3d6e5e4aeffd61f570b9c16a58fc"
-        }
-      ]
-    },
-    {
       "name": "smart-buffer",
       "SPDXID": "SPDXRef-Package-smart-buffer-4.2.0",
       "versionInfo": "4.2.0",
@@ -4210,11 +3490,11 @@
     },
     {
       "name": "smtp-server",
-      "SPDXID": "SPDXRef-Package-smtp-server-3.21.4",
-      "versionInfo": "3.21.4",
+      "SPDXID": "SPDXRef-Package-smtp-server-3.21.7",
+      "versionInfo": "3.21.7",
       "packageFileName": "node_modules/smtp-server",
       "description": "Create custom SMTP servers on the fly",
-      "downloadLocation": "https://registry.npmjs.org/smtp-server/-/smtp-server-3.21.4.tgz",
+      "downloadLocation": "https://registry.npmjs.org/smtp-server/-/smtp-server-3.21.7.tgz",
       "filesAnalyzed": false,
       "homepage": "https://nodemailer.com/extras/smtp-server/",
       "licenseDeclared": "MIT-0",
@@ -4222,23 +3502,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/smtp-server@3.21.4"
+          "referenceLocator": "pkg:npm/smtp-server@3.21.7"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "16790b11de1002cb9425377b00aeb348307ccb6167dd3d445c80b438850ca986d4982bf8547f69ea8a6df1a7c288477ac7e8718e587f09414248928c5be35fca"
+          "checksumValue": "1d9b45f0b8af12e3ed715ba80981daeb41931e88703e9c33f741875309bcf17836b48e192421d64f3b92d3cbae7cc9267b8aaf45ea83eef11049dc9119b450d9"
         }
       ]
     },
     {
       "name": "socks",
-      "SPDXID": "SPDXRef-Package-socks-2.8.10",
-      "versionInfo": "2.8.10",
+      "SPDXID": "SPDXRef-Package-socks-2.8.11",
+      "versionInfo": "2.8.11",
       "packageFileName": "node_modules/socks",
       "description": "Fully featured SOCKS proxy client supporting SOCKSv4, SOCKSv4a, and SOCKSv5. Includes Bind and Associate functionality.",
-      "downloadLocation": "https://registry.npmjs.org/socks/-/socks-2.8.10.tgz",
+      "downloadLocation": "https://registry.npmjs.org/socks/-/socks-2.8.11.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/JoshGlazebrook/socks/",
       "licenseDeclared": "MIT",
@@ -4246,13 +3526,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/socks@2.8.10"
+          "referenceLocator": "pkg:npm/socks@2.8.11"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "7b4572be4553c1561588da2f46467d6a8761c55972a0c9fb78985550fc59f9e2bd3ffec2064c6fbec04e1ea14f107e35ebbdba5bcb4b5d75e32b0aa04c4aeb09"
+          "checksumValue": "d87fee43bf9234fd212b5e91a2b4da934996ac5a2aa38027015192525d9d4f4ee86e059d5adf60ae697e5439752e496050e3d633801ba34bbce82be9f2f16363"
         }
       ]
     },
@@ -4426,11 +3706,11 @@
     },
     {
       "name": "tldts",
-      "SPDXID": "SPDXRef-Package-tldts-7.4.19",
-      "versionInfo": "7.4.19",
+      "SPDXID": "SPDXRef-Package-tldts-7.5.5",
+      "versionInfo": "7.5.5",
       "packageFileName": "node_modules/tldts",
       "description": "Library to work against complex domain names, subdomains and URIs.",
-      "downloadLocation": "https://registry.npmjs.org/tldts/-/tldts-7.4.19.tgz",
+      "downloadLocation": "https://registry.npmjs.org/tldts/-/tldts-7.5.5.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/remusao/tldts#readme",
       "licenseDeclared": "MIT",
@@ -4438,23 +3718,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/tldts@7.4.19"
+          "referenceLocator": "pkg:npm/tldts@7.5.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "e3c747e9a4a9427a5bcc351ce2f21067556307cb642be7bc735cb1d39fd264afab92cb208c43a5c4377fc94f3f6b8bc6610f6f46026bf5dc0cabd4c9d1bdd7d9"
+          "checksumValue": "1f2e8822669600bcc93a0088b2ce202058b81b433d96a93de6914a09457140f670f9b899d4fbfa7f6f09a5881a869241f81b9f0341d8b0853f68ffd6231dca46"
         }
       ]
     },
     {
       "name": "tldts-core",
-      "SPDXID": "SPDXRef-Package-tldts-core-7.4.20",
-      "versionInfo": "7.4.20",
+      "SPDXID": "SPDXRef-Package-tldts-core-7.5.5",
+      "versionInfo": "7.5.5",
       "packageFileName": "node_modules/tldts-core",
       "description": "tldts core primitives (internal module)",
-      "downloadLocation": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.20.tgz",
+      "downloadLocation": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.5.5.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/remusao/tldts#readme",
       "licenseDeclared": "MIT",
@@ -4462,13 +3742,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/tldts-core@7.4.20"
+          "referenceLocator": "pkg:npm/tldts-core@7.5.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "0badf44d65d909998bab41766d6e10ab09da6b1090fecbe902abc9c270b826f804339a218419c6b04cd32d239770dfb18f3fa411a1d2e6ea16230da4967a9dd0"
+          "checksumValue": "ac4273ffc709158fdb745df9e20975e32c5abdbac86ef33e15c6e461543a09208c41325d5055089b7f534d64a218fbdca5087bfc5eaa1eb0f74a4c30760b430b"
         }
       ]
     },
@@ -4570,11 +3850,11 @@
     },
     {
       "name": "uc.micro",
-      "SPDXID": "SPDXRef-Package-uc.micro-2.1.0",
-      "versionInfo": "2.1.0",
+      "SPDXID": "SPDXRef-Package-uc.micro-3.0.0",
+      "versionInfo": "3.0.0",
       "packageFileName": "node_modules/uc.micro",
       "description": "Micro subset of unicode data files for markdown-it projects.",
-      "downloadLocation": "https://registry.npmjs.org/uc.micro/-/uc.micro-2.1.0.tgz",
+      "downloadLocation": "https://registry.npmjs.org/uc.micro/-/uc.micro-3.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "NOASSERTION",
       "licenseDeclared": "MIT",
@@ -4582,23 +3862,23 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/uc.micro@2.1.0"
+          "referenceLocator": "pkg:npm/uc.micro@3.0.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "0110c99a986676f524e86970ef2f434366c590a047c101cb8b696c687e8f3e6cff29af6c14e06c065ba8ce10e5b569a7bfdbbf705e91b7cef39d14cf57eca9fc"
+          "checksumValue": "5373e9a449257a84e721f8bc068cccc77ca3bb7a9cfcbe92c2a5a8d92c3ee783d7f8f5f4abd23eaf5526e470a6a83ee7f550d7e7fbf7bd01ff02303a75e0ddb7"
         }
       ]
     },
     {
       "name": "undici",
-      "SPDXID": "SPDXRef-Package-undici-7.30.2",
-      "versionInfo": "7.30.2",
+      "SPDXID": "SPDXRef-Package-undici-8.13.1",
+      "versionInfo": "8.13.1",
       "packageFileName": "node_modules/undici",
       "description": "An HTTP/1.1 client, written from scratch for Node.js",
-      "downloadLocation": "https://registry.npmjs.org/undici/-/undici-7.30.2.tgz",
+      "downloadLocation": "https://registry.npmjs.org/undici/-/undici-8.13.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://undici.nodejs.org",
       "licenseDeclared": "MIT",
@@ -4606,133 +3886,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/undici@7.30.2"
+          "referenceLocator": "pkg:npm/undici@8.13.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "98bc8f4271f053168cfeb89d7a82bff8a2fc0da0092d197868109f997e38e1a0922e721aa26a8f2ed3517b68dd09872c939c19cd7ac32100bc65e60d44063220"
-        }
-      ]
-    },
-    {
-      "name": "valid-data-url",
-      "SPDXID": "SPDXRef-Package-valid-data-url-3.0.1",
-      "versionInfo": "3.0.1",
-      "packageFileName": "node_modules/valid-data-url",
-      "description": "Detect if a string is a data URL",
-      "downloadLocation": "https://registry.npmjs.org/valid-data-url/-/valid-data-url-3.0.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/killmenot/valid-data-url",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/valid-data-url@3.0.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "8ce5959b355c78a95555dc233527a74f83db1a0854d120488b301ebfca1f655822be4fd35475d26cd2fc2cfe8cdeca59be447dfd0a2593225abc6497e42b3450"
-        }
-      ]
-    },
-    {
-      "name": "web-resource-inliner",
-      "SPDXID": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "versionInfo": "8.0.0",
-      "packageFileName": "node_modules/web-resource-inliner",
-      "description": "Inlines img, script and link tags into the same file.",
-      "downloadLocation": "https://registry.npmjs.org/web-resource-inliner/-/web-resource-inliner-8.0.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/web-resource-inliner@8.0.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "133afdf2ca975bff8e086a14117b8e29547ea1516549d9f5b48c9210425d892030e088eb5bc8509300114920494d207952ce5d9f2b4380bd190e588060185a34"
-        }
-      ]
-    },
-    {
-      "name": "htmlparser2",
-      "SPDXID": "SPDXRef-Package-htmlparser2-9.1.0",
-      "versionInfo": "9.1.0",
-      "packageFileName": "node_modules/web-resource-inliner/node_modules/htmlparser2",
-      "description": "Fast & forgiving HTML/XML parser",
-      "downloadLocation": "https://registry.npmjs.org/htmlparser2/-/htmlparser2-9.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/htmlparser2@9.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "e737e0ea61d4a1a7abffded3c671a9c666d1ef326d3f021814c67f1f9b9c4e53d984abedba6d39ca23cadcc81a8b76b40f2571bfba98aa8c1e6847769eb610cd"
-        }
-      ]
-    },
-    {
-      "name": "whatwg-encoding",
-      "SPDXID": "SPDXRef-Package-whatwg-encoding-3.1.1",
-      "versionInfo": "3.1.1",
-      "packageFileName": "node_modules/whatwg-encoding",
-      "description": "Decode strings according to the WHATWG Encoding Standard",
-      "downloadLocation": "https://registry.npmjs.org/whatwg-encoding/-/whatwg-encoding-3.1.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/whatwg-encoding@3.1.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "eaa37884974cc1f601b44dd80534c78687ae52b0c13d999b41ac5602a4802d5fcc7849d1e73d7177c50ab9dd910241683e4981fa1962d536529f28bce31cf5bd"
-        }
-      ]
-    },
-    {
-      "name": "whatwg-mimetype",
-      "SPDXID": "SPDXRef-Package-whatwg-mimetype-4.0.0",
-      "versionInfo": "4.0.0",
-      "packageFileName": "node_modules/whatwg-mimetype",
-      "description": "Parses, serializes, and manipulates MIME types, according to the WHATWG MIME Sniffing Standard",
-      "downloadLocation": "https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-4.0.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/whatwg-mimetype@4.0.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "41a2b187478d222da613da76bc47737da80e28709c8f5a49e7a1041c640e571a7cafdfe2b332d4515eeff3dc7d3b5a7f4fe3654cce56ee35baf9ccf816ad5856"
+          "checksumValue": "2adec468f8e1d2cf779491ff3e65b7779ae191ca546ba7d2de3a99efe606c4d77d2fb5f2fe2f36ef17b80b6ba186afa925e6cce2d40e9790201e65b5d46e5292"
         }
       ]
     },
@@ -4764,237 +3924,237 @@
   "relationships": [
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DESCRIBES"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.accept-6.0.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.bell-13.2.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.boom-10.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.cookie-12.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.crumb-9.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.hapi-21.4.13",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.inert-7.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-hapi.vision-7.0.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-msgpack.msgpack-3.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-postalsys.bounce-classifier-3.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.certs-2.0.5",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.certs-3.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.email-content-0.1.21",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.email-content-0.1.22",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.gettext-4.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.gettext-4.3.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-postalsys.joi-messages-1.4.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.templates-2.1.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-postalsys.templates-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-prometheus-io.client-0.16.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-sentry.core-11.17.0",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-simplewebauthn.server-14.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-zone-eu.wild-config-1.7.10",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-bullmq-6.7.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-bullmq-6.7.10",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-dotenv-18.0.10",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-fast-xml-parser-5.12.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-fast-xml-parser-5.12.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-he-1.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-html-to-text-10.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-ical.js-2.2.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-imapflow-2.11.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-imapflow-2.12.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-ioredfour-2.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ioredis-6.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-ioredis-6.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-ipaddr.js-2.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-joi-18.3.2",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-libbase64-1.4.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libqp-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-libqp-3.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-mailparser-3.14.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-mailparser-3.15.0",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-marked-15.0.12",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nodemailer-10.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-nodemailer-10.6.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-pino-10.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-prom-client-15.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-pubface-1.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-punycode.js-2.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-qrcode-generator-2.0.4",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-smtp-server-3.21.4",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-smtp-server-3.21.7",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-socks-2.8.10",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-socks-2.8.11",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-undici-7.30.2",
-      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.87.2",
+      "spdxElementId": "SPDXRef-Package-tldts-7.5.5",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-undici-8.13.1",
+      "relatedSpdxElement": "SPDXRef-Package-emailengine-app-2.90.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -5048,38 +4208,8 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-joi-17.13.9",
+      "spdxElementId": "SPDXRef-Package-joi-18.3.2",
       "relatedSpdxElement": "SPDXRef-Package-hapi.bell-13.2.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-hapi.hoek-9.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-hapi.topo-5.1.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-hapi.hoek-9.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-joi-17.13.9",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-hapi.topo-5.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-joi-17.13.9",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sideway.address-4.1.5",
-      "relatedSpdxElement": "SPDXRef-Package-joi-17.13.9",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sideway.formula-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-joi-17.13.9",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sideway.pinpoint-2.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-joi-17.13.9",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -5553,76 +4683,6 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.45.0",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.45.0",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.45.0",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.45.0",
-      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-peculiar.asn1-schema-2.11.1",
       "relatedSpdxElement": "SPDXRef-Package-peculiar.asn1-android-2.11.1",
       "relationshipType": "DEPENDENCY_OF"
@@ -5979,117 +5039,122 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-msgpack.msgpack-3.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-ioredfour-2.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-joi-18.3.2",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-pino-10.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-punycode.js-2.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-undici-7.30.2",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-2.0.5",
+      "spdxElementId": "SPDXRef-Package-undici-8.13.0",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.certs-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
+      "spdxElementId": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-htmlparser2-10.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-tldts-7.4.19",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
+      "spdxElementId": "SPDXRef-Package-tldts-7.5.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-undici-7.30.2",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-2.4.3",
+      "spdxElementId": "SPDXRef-Package-undici-8.13.0",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-ai-tools-3.0.3",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.21",
+      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.22",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.21",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.22",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-node-html-parser-9.0.7",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.21",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-content-0.1.22",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-postalsys.email-content-0.1.21",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "spdxElementId": "SPDXRef-Package-postalsys.email-content-0.1.22",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-dompurify-3.4.17",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "spdxElementId": "SPDXRef-Package-dompurify-3.4.18",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-he-1.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-html-to-text-10.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-juice-11.1.1",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-linkify-it-5.0.2",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "spdxElementId": "SPDXRef-Package-linkify-it-6.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-node-html-parser-9.0.7",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-tlds-1.261.0",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-2.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.email-text-tools-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-marked-15.0.12",
-      "relatedSpdxElement": "SPDXRef-Package-postalsys.templates-2.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-postalsys.templates-3.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.10.0",
+      "relatedSpdxElement": "SPDXRef-Package-prometheus-io.client-0.16.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-tdigest-0.1.3",
+      "relatedSpdxElement": "SPDXRef-Package-prometheus-io.client-0.16.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6098,73 +5163,8 @@
       "relationshipType": "PREREQUISITE_FOR"
     },
     {
-      "spdxElementId": "SPDXRef-Package-sentry.conventions-0.16.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sentry.conventions-0.16.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sentry.core-10.78.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-import-in-the-middle-3.6.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.node-core-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.12.1",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relationshipType": "PREREQUISITE_FOR"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sentry.conventions-0.16.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-sentry.core-10.78.0",
-      "relatedSpdxElement": "SPDXRef-Package-sentry.opentelemetry-10.78.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-hapi.hoek-9.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-sideway.address-4.1.5",
+      "spdxElementId": "SPDXRef-Package-sentry.conventions-0.35.0",
+      "relatedSpdxElement": "SPDXRef-Package-sentry.core-11.17.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6219,17 +5219,17 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-libbase64-1.4.1",
-      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
+      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libqp-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
+      "spdxElementId": "SPDXRef-Package-libqp-3.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6258,88 +5258,38 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ioredis-6.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
+      "spdxElementId": "SPDXRef-Package-ioredis-6.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cron-parser-5.10.4",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
+      "spdxElementId": "SPDXRef-Package-cron-parser-5.10.6",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-msgpackr-2.1.4",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-node-abort-controller-3.1.1",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-semver-7.8.6",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-tslib-2.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.3",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-cheerio-select-2.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-encoding-sniffer-0.2.1",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-htmlparser2-10.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-parse5-7.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-parse5-htmlparser2-tree-adapter-7.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-parse5-parser-stream-7.1.2",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-undici-7.30.2",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-whatwg-mimetype-4.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-1.2.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-css-select-5.2.2",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-select-2.1.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-css-what-6.2.2",
-      "relatedSpdxElement": "SPDXRef-Package-cheerio-select-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-6.7.10",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-luxon-3.7.2",
-      "relatedSpdxElement": "SPDXRef-Package-cron-parser-5.10.4",
+      "relatedSpdxElement": "SPDXRef-Package-cron-parser-5.10.6",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6349,57 +5299,47 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-types.trusted-types-2.0.7",
-      "relatedSpdxElement": "SPDXRef-Package-dompurify-3.4.17",
+      "relatedSpdxElement": "SPDXRef-Package-dompurify-3.4.18",
       "relationshipType": "OPTIONAL_DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-iconv-lite-0.6.3",
-      "relatedSpdxElement": "SPDXRef-Package-encoding-sniffer-0.2.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-whatwg-encoding-3.1.1",
-      "relatedSpdxElement": "SPDXRef-Package-encoding-sniffer-0.2.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-path-expression-matcher-1.6.2",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-builder-1.3.1",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-builder-1.3.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-xml-naming-0.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-builder-1.3.1",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-builder-1.3.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-nodable.entities-3.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-fast-xml-builder-1.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "spdxElementId": "SPDXRef-Package-fast-xml-builder-1.3.2",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-is-unsafe-2.0.3",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-path-expression-matcher-1.6.2",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-strnum-2.5.1",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-xml-naming-0.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-fast-xml-parser-5.12.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6428,53 +5368,38 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-encoding-japanese-2.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-libbase64-1.4.1",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libqp-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "spdxElementId": "SPDXRef-Package-libqp-3.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-pino-10.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-socks-2.8.10",
-      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.11.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-cjs-module-lexer-2.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-3.6.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-es-module-lexer-3.0.4",
-      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-3.6.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-module-details-from-path-1.0.4",
-      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-3.6.0",
+      "spdxElementId": "SPDXRef-Package-socks-2.8.11",
+      "relatedSpdxElement": "SPDXRef-Package-imapflow-2.12.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6505,6 +5430,26 @@
     {
       "spdxElementId": "SPDXRef-Package-standard-as-callback-2.1.0",
       "relatedSpdxElement": "SPDXRef-Package-ioredis-6.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ioredis.commands-2.4.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-6.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-denque-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-6.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-redis-errors-1.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-6.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-standard-as-callback-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-6.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6543,93 +5488,63 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cheerio-1.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-commander-12.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-entities-7.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-mensch-0.3.4",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-slick-1.12.2",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-juice-11.1.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-encoding-japanese-2.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.5",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-libbase64-1.4.1",
-      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.4",
+      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.5",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libqp-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.4",
+      "spdxElementId": "SPDXRef-Package-libqp-3.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-libmime-5.6.5",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-uc.micro-2.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-linkify-it-5.0.2",
+      "spdxElementId": "SPDXRef-Package-uc.micro-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-linkify-it-6.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.30",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "spdxElementId": "SPDXRef-Package-zone-eu.mailsplit-5.4.31",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-he-1.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-html-to-text-10.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-libmime-5.6.4",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "spdxElementId": "SPDXRef-Package-libmime-5.6.5",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-linkify-it-5.0.2",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "spdxElementId": "SPDXRef-Package-linkify-it-6.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nodemailer-10.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "spdxElementId": "SPDXRef-Package-nodemailer-10.6.1",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-punycode.js-2.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-tlds-1.261.0",
-      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.14.3",
+      "relatedSpdxElement": "SPDXRef-Package-mailparser-3.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6655,21 +5570,6 @@
     {
       "spdxElementId": "SPDXRef-Package-entities-8.1.0",
       "relatedSpdxElement": "SPDXRef-Package-node-html-parser-9.0.7",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-entities-6.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-parse5-7.3.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-parse5-7.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-parse5-htmlparser2-tree-adapter-7.1.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-parse5-7.3.0",
-      "relatedSpdxElement": "SPDXRef-Package-parse5-parser-stream-7.1.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6723,16 +5623,6 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.1",
-      "relatedSpdxElement": "SPDXRef-Package-prom-client-15.1.3",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-tdigest-0.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-prom-client-15.1.3",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-ipaddr.js-2.5.0",
       "relatedSpdxElement": "SPDXRef-Package-pubface-1.2.0",
       "relationshipType": "DEPENDENCY_OF"
@@ -6748,28 +5638,23 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ipv6-normalize-1.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-smtp-server-3.21.4",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-nodemailer-10.5.0",
-      "relatedSpdxElement": "SPDXRef-Package-smtp-server-3.21.4",
+      "spdxElementId": "SPDXRef-Package-nodemailer-10.6.1",
+      "relatedSpdxElement": "SPDXRef-Package-smtp-server-3.21.7",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-punycode.js-2.3.1",
-      "relatedSpdxElement": "SPDXRef-Package-smtp-server-3.21.4",
+      "relatedSpdxElement": "SPDXRef-Package-smtp-server-3.21.7",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-ip-address-10.7.6",
-      "relatedSpdxElement": "SPDXRef-Package-socks-2.8.10",
+      "relatedSpdxElement": "SPDXRef-Package-socks-2.8.11",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-smart-buffer-4.2.0",
-      "relatedSpdxElement": "SPDXRef-Package-socks-2.8.10",
+      "relatedSpdxElement": "SPDXRef-Package-socks-2.8.11",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -6788,38 +5673,13 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-tldts-core-7.4.20",
-      "relatedSpdxElement": "SPDXRef-Package-tldts-7.4.19",
+      "spdxElementId": "SPDXRef-Package-tldts-core-7.5.5",
+      "relatedSpdxElement": "SPDXRef-Package-tldts-7.5.5",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-tslib-1.14.1",
       "relatedSpdxElement": "SPDXRef-Package-tsyringe-4.10.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-ansi-colors-4.1.3",
-      "relatedSpdxElement": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-escape-goat-3.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-htmlparser2-9.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-valid-data-url-3.0.1",
-      "relatedSpdxElement": "SPDXRef-Package-web-resource-inliner-8.0.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-iconv-lite-0.6.3",
-      "relatedSpdxElement": "SPDXRef-Package-whatwg-encoding-3.1.1",
       "relationshipType": "DEPENDENCY_OF"
     }
   ]

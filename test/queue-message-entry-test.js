@@ -12,7 +12,9 @@ const assert = require('node:assert').strict;
 let unsubscribed = {};
 require('./helpers/mock-db').installDbMock({
     redis: {
-        hget: async (key, field) => (unsubscribed[`${key}:${field}`] ? JSON.stringify(unsubscribed[`${key}:${field}`]) : null)
+        hget: async (key, field) => (unsubscribed[`${key}:${field}`] ? JSON.stringify(unsubscribed[`${key}:${field}`]) : null),
+        // no gateway is stored
+        hgetallBuffer: async () => ({})
     }
 });
 
@@ -21,9 +23,11 @@ const settings = require('../lib/settings');
 settings.get = async key => settingsValues[key];
 settings.getMulti = async (...keys) => Object.fromEntries(await Promise.all(keys.map(async key => [key, await settings.get(key)])));
 
-const { BaseClient } = require('../lib/email-client/base-client');
+const { BaseClient, buildReferenceResponse, listBaseDomain, senderDomain } = require('../lib/email-client/base-client');
 const { REDIS_PREFIX } = require('../lib/consts');
 const { noopLogger } = require('./helpers/auth-failure');
+const { simpleParser } = require('mailparser');
+const os = require('os');
 
 require('./helpers/redis-teardown')();
 
@@ -133,6 +137,29 @@ test('queueMessageEntry', async t => {
         assert.match(Buffer.from(result.preview, 'base64').toString(), /^Subject: Dry$/m);
     });
 
+    await t.test('a gateway that does not exist fails the submission instead of using the account server', async () => {
+        const { queued, run } = createClient();
+        await assert.rejects(
+            run({ to: [{ address: 'rcpt@example.com' }], subject: 'x', text: 'x', gateway: 'missing-gw' }),
+            err => err.code === 'GatewayNotFound' && err.statusCode === 404
+        );
+        assert.strictEqual(queued.length, 0);
+    });
+
+    await t.test('renders the preview text into the html like the other template fields', async () => {
+        const { queued, run } = createClient();
+        await run({
+            to: [{ address: 'rcpt@example.com' }],
+            subject: 'x',
+            html: '<html><body><p>Body</p></body></html>',
+            previewText: 'Hello {{params.name}}',
+            render: { params: { name: 'Juta' } }
+        });
+        const raw = rawOf(queued).replace(/[=]\r\n/g, '');
+        assert.match(raw, /Hello Juta/);
+        assert.doesNotMatch(raw, /\{\{params\.name\}\}/);
+    });
+
     await t.test('list messages', async t => {
         await t.test('skip a recipient who unsubscribed from the list', async () => {
             const { queued, run } = createClient();
@@ -151,6 +178,19 @@ test('queueMessageEntry', async t => {
             assert.match(raw, /^List-Unsubscribe-Post: List-Unsubscribe=One-Click$/m);
             assert.match(queued[0].messageId, /@example\.com>$/);
             assert.match(raw, /Unsubscribe: https:\/\/ee\.example\.com\/unsubscribe\?/);
+        });
+
+        await t.test('take the List-ID domain from the host name when the base URL names no host', async () => {
+            const { queued, run } = createClient();
+            await run({ to: [{ address: 'rcpt@example.com' }], listId: 'news', subject: 'x', text: 'x', baseUrl: 'file:///srv/ee' });
+            const hostDomain = (os.hostname() || '').toLowerCase().trim() || 'localhost';
+            assert.ok(rawOf(queued).includes(`List-ID: <news.${hostDomain}>`));
+        });
+
+        await t.test('generate the Message-ID on the punycode form of an IDN sender domain', async () => {
+            const { queued, run } = createClient();
+            await run({ from: { address: 'news@\u00f5nne.ee' }, to: [{ address: 'rcpt@example.com' }], listId: 'news', subject: 'x', text: 'x' });
+            assert.match(queued[0].messageId, /^<[0-9a-f-]+@xn--nne-nna\.ee>$/);
         });
 
         await t.test('are not list messages for more than one recipient', async () => {
@@ -214,6 +254,126 @@ test('queueMessageEntry', async t => {
             assert.deepStrictEqual(result.reference, { message: 'MSG1', success: false, error: 'Referenced message was not found' });
         });
 
+        await t.test('check the connection before fetching the referenced message', async () => {
+            const order = [];
+            const { client } = createClient({
+                getMessage: () => {
+                    order.push('getMessage');
+                    return JSON.parse(JSON.stringify(REFERENCED));
+                }
+            });
+            client.checkIMAPConnection = connectionOptions => {
+                order.push(['checkIMAPConnection', connectionOptions]);
+                return true;
+            };
+            const connectionOptions = { marker: 1 };
+            await client.queueMessageEntry({ text: 'x', reference: { message: 'MSG1', action: 'reply' } }, {}, {}, connectionOptions);
+            assert.deepStrictEqual(order, [['checkIMAPConnection', connectionOptions], 'getMessage']);
+        });
+
+        await t.test('mark the referenced message for a flag update only when it lacks the flag', async t => {
+            const update = async (flags, action) => {
+                const { queued, run } = createClient({ getMessage: () => Object.assign({}, REFERENCED, { flags }) });
+                await run({ text: 'x', to: [{ address: 'r@example.com' }], reference: { message: 'MSG1', action } });
+                return queued[0].data.reference.update;
+            };
+            assert.strictEqual(await update(undefined, 'reply'), true);
+            assert.strictEqual(await update(['\\Seen'], 'reply'), true);
+            assert.strictEqual(await update(['\\Answered'], 'reply'), undefined);
+            // a forward only looks at $Forwarded, so an answered message still gets marked forwarded
+            assert.strictEqual(await update(['$Forwarded'], 'forward'), undefined);
+            assert.strictEqual(await update(['\\Answered'], 'forward'), true);
+            assert.strictEqual(await update(['$Forwarded'], 'reply'), true);
+        });
+
+        await t.test('do not carry a thread id the referenced message does not have', async () => {
+            const { queued, run } = createClient({ getMessage: () => Object.assign({}, REFERENCED, { threadId: undefined }) });
+            await run({ text: 'x', reference: { message: 'MSG1', action: 'reply' } });
+            assert.strictEqual('threadId' in queued[0].data.reference, false);
+        });
+
+        await t.test('retry a transient failure to fetch the referenced message', async t => {
+            // the retry waits 1s and then 2s between attempts; run those waits on mocked timers
+            const withMockedTimers = async promiseFn => {
+                t.mock.timers.enable({ apis: ['setTimeout'] });
+                try {
+                    const promise = promiseFn();
+                    let settled = false;
+                    promise.then(
+                        () => (settled = true),
+                        () => (settled = true)
+                    );
+                    while (!settled) {
+                        await new Promise(resolve => setImmediate(resolve));
+                        t.mock.timers.tick(5000);
+                    }
+                    return await promise;
+                } finally {
+                    t.mock.timers.reset();
+                }
+            };
+            const failing = failures => {
+                let attempts = 0;
+                return {
+                    attempts: () => attempts,
+                    getMessage: () => {
+                        attempts++;
+                        if (attempts <= failures) {
+                            throw Object.assign(new Error('Service Unavailable'), { statusCode: 503 });
+                        }
+                        return JSON.parse(JSON.stringify(REFERENCED));
+                    }
+                };
+            };
+
+            await t.test('and thread to it once it answers', async () => {
+                const source = failing(2);
+                const { queued, run } = createClient({ getMessage: source.getMessage });
+                const result = await withMockedTimers(() => run({ text: 'x', reference: { message: 'MSG1', action: 'reply' } }));
+                assert.strictEqual(source.attempts(), 3);
+                assert.match(rawOf(queued), /^In-Reply-To: <original@example\.com>$/m);
+                assert.strictEqual(result.reference.success, true);
+            });
+
+            await t.test('and throw the last failure when it never answers', async () => {
+                const source = failing(5);
+                const { queued, run } = createClient({ getMessage: source.getMessage });
+                await assert.rejects(
+                    withMockedTimers(() => run({ text: 'x', to: [{ address: 'r@example.com' }], reference: { message: 'MSG1', action: 'reply' } })),
+                    err => err.message === 'Service Unavailable' && err.statusCode === 503 && !err.code
+                );
+                assert.strictEqual(source.attempts(), 3);
+                assert.strictEqual(queued.length, 0);
+            });
+
+            await t.test('and send unthreaded with ignoreMissing when it never answers', async () => {
+                const source = failing(5);
+                const { queued, run } = createClient({ getMessage: source.getMessage });
+                const result = await withMockedTimers(() =>
+                    run({ text: 'x', subject: 'Own', to: [{ address: 'r@example.com' }], reference: { message: 'MSG1', action: 'reply', ignoreMissing: true } })
+                );
+                assert.strictEqual(source.attempts(), 3);
+                assert.doesNotMatch(rawOf(queued), /In-Reply-To/);
+                assert.deepStrictEqual(result.reference, { message: 'MSG1', success: false, error: 'Referenced message was not found' });
+            });
+
+            await t.test('but not a permanent one', async () => {
+                const source = {
+                    attempts: 0,
+                    getMessage: () => {
+                        source.attempts++;
+                        throw Object.assign(new Error('Forbidden'), { statusCode: 403 });
+                    }
+                };
+                const { run } = createClient({ getMessage: source.getMessage });
+                await assert.rejects(
+                    run({ text: 'x', to: [{ address: 'r@example.com' }], reference: { message: 'MSG1', action: 'reply', ignoreMissing: true } }),
+                    err => err.message === 'Forbidden' && err.statusCode === 403
+                );
+                assert.strictEqual(source.attempts, 1);
+            });
+        });
+
         await t.test('fail when the referenced message has another Message-ID than expected', async () => {
             const { run } = createClient();
             await assert.rejects(
@@ -231,6 +391,80 @@ test('queueMessageEntry', async t => {
             const raw = rawOf(queued);
             assert.match(raw, /Original html/);
             assert.match(raw, /Original text/);
+        });
+
+        await t.test('write the line above the quote in the language of the locale', async t => {
+            const quoted = { getMessage: () => Object.assign({}, REFERENCED, { text: { plain: 'Original text', html: '<p>Original html</p>' } }) };
+            const send = async (data, opts) => {
+                const { queued, run } = createClient(Object.assign({}, quoted, opts));
+                await run(
+                    Object.assign(
+                        { text: 'My answer', html: '<p>My answer</p>', tz: 'UTC', reference: { message: 'MSG1', action: 'reply', inline: true } },
+                        data
+                    )
+                );
+                const parsed = await simpleParser(queued[0].raw);
+                return { text: parsed.text, html: parsed.html };
+            };
+
+            await t.test('English when nothing names one', async () => {
+                const { text, html } = await send({});
+                assert.match(text, /^> On Thu, Oct 1, 2026, 10:00 AM, Original Author <author@example\.com> wrote:$/m);
+                assert.match(
+                    html,
+                    /On Thu, Oct 1, 2026, 10:00 AM, Original Author &lt;<a href="mailto:author@example\.com">author@example\.com<\/a>&gt; wrote:/
+                );
+            });
+
+            await t.test('the locale of the request', async () => {
+                const { text, html } = await send({ locale: 'sv' });
+                assert.match(text, /^> Den tors 1 okt\. 2026 kl\. 10:00 skrev Original Author <author@example\.com>:$/m);
+                assert.match(html, /Den tors 1 okt\. 2026 kl\. 10:00 skrev Original Author/);
+                assert.doesNotMatch(text, /wrote:/);
+            });
+
+            await t.test('a regional tag, and the time zone of the request', async () => {
+                const { text } = await send({ locale: 'fi-FI', tz: 'Europe/Helsinki' });
+                assert.match(text, /^> Original Author <author@example\.com> kirjoitti to 1\.10\.2026 klo 13\.00:$/m);
+            });
+
+            await t.test('reply-all like reply', async () => {
+                const { text } = await send({ locale: 'de', reference: { message: 'MSG1', action: 'reply-all', inline: true } });
+                assert.match(text, /^> Am Do\., 1\. Okt\. 2026 um 10:00 schrieb Original Author <author@example\.com>:$/m);
+            });
+
+            await t.test('the headers of a forward', async () => {
+                const { text } = await send({
+                    locale: 'nl',
+                    to: [{ address: 'fwd@example.com' }],
+                    reference: { message: 'MSG1', action: 'forward', inline: true }
+                });
+                assert.match(text, /^> Doorgestuurd bericht:$/m);
+                assert.match(text, /^> Van: Original Author <author@example\.com>$/m);
+                assert.match(text, /^> Onderwerp: Quarterly numbers$/m);
+                assert.match(text, /^> Datum: do 1 okt 2026, 10:00$/m);
+            });
+
+            await t.test('the locale of the account when the request has none', async () => {
+                const { text } = await send({}, { accountData: { locale: 'da' } });
+                assert.match(text, /^> Den tors\. 1\. okt\. 2026 kl\. 10\.00 skrev Original Author <author@example\.com>:$/m);
+            });
+
+            await t.test('the locale setting of the instance after that', async () => {
+                settingsValues.locale = 'et';
+                const { text } = await send({});
+                assert.match(text, /^> N, 1\. oktoober 2026 kell 10:00 kirjutas Original Author <author@example\.com>:$/m);
+                // the request still wins over the account, and the account over the setting
+                const request = await send({ locale: 'sv' }, { accountData: { locale: 'da' } });
+                assert.match(request.text, / skrev Original Author /);
+                assert.match(request.text, /^> Den tors 1 okt\. /m);
+                delete settingsValues.locale;
+            });
+
+            await t.test('English for a language without a translation', async () => {
+                const { text } = await send({ locale: 'mt' });
+                assert.match(text, /^> On Thu, Oct 1, 2026, 10:00 AM, Original Author <author@example\.com> wrote:$/m);
+            });
         });
     });
 
@@ -367,5 +601,33 @@ test('pushMessageToQueue', async t => {
         });
         await assert.rejects(client.pushMessageToQueue(params), /OOM/);
         assert.strictEqual(redis.has(outboxKey, queueId), false);
+    });
+});
+
+test('queueMessageEntry helpers', async t => {
+    await t.test('buildReferenceResponse() reports a referenced message and a thread id', () => {
+        assert.strictEqual(buildReferenceResponse(undefined, null), undefined);
+        assert.strictEqual(buildReferenceResponse({ action: 'reply' }, null), undefined);
+        assert.deepStrictEqual(buildReferenceResponse({ message: 'M1' }, { id: 'M1' }), { message: 'M1', success: true });
+        assert.deepStrictEqual(buildReferenceResponse({ message: 'M1', threadId: 'T1' }, undefined), {
+            message: 'M1',
+            success: false,
+            error: 'Referenced message was not found',
+            threadId: 'T1'
+        });
+        assert.deepStrictEqual(buildReferenceResponse({ threadId: 'T1' }, undefined), { threadId: 'T1' });
+    });
+
+    await t.test('listBaseDomain() takes the URL host, else the host name of the machine', () => {
+        assert.strictEqual(listBaseDomain('https://EE.Example.com:3000/path'), 'ee.example.com');
+        const hostDomain = (os.hostname() || '').toLowerCase().trim() || 'localhost';
+        assert.strictEqual(listBaseDomain('file:///srv'), hostDomain);
+        assert.strictEqual(listBaseDomain('not a url'), hostDomain);
+    });
+
+    await t.test('senderDomain() is the ASCII sender domain, else the fallback', () => {
+        assert.strictEqual(senderDomain('a@Õnne.EE', 'fallback.test'), 'xn--nne-nna.ee');
+        assert.strictEqual(senderDomain('', 'fallback.test'), 'fallback.test');
+        assert.strictEqual(senderDomain(undefined, 'fallback.test'), 'fallback.test');
     });
 });

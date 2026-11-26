@@ -25,6 +25,21 @@ dropdown allows skipping the test. --}}
     </div>
     {{/if}}
 
+    {{!-- A Microsoft mailbox: Microsoft refuses the password over IMAP, so say so before the visitor
+    fills in the form and watches the check fail. signInNotice.noApp means no OAuth2 application
+    could have been offered instead, which only the operator can change. --}}
+    {{#if signInNotice}}
+    <div class="ee-alert ee-alert-warning">
+        <span class="ee-icon ee-icon-alert-triangle"></span>
+        <span>
+            {{_ "This appears to be a Microsoft mailbox. Microsoft no longer accepts passwords for IMAP, so the connection test is likely to fail." templateLocale }}
+            {{#if signInNotice.noApp}}
+            {{_ "Ask the service that sent you this link to enable Microsoft sign-in." templateLocale }}
+            {{/if}}
+        </span>
+    </div>
+    {{/if}}
+
     {{!-- Set when the checking page sent the visitor here because its connection check did not pass,
     so the form says what it is for instead of appearing out of nowhere. The per-protocol detail stays
     on the page they read it on. --}}
@@ -81,7 +96,7 @@ dropdown allows skipping the test. --}}
                                 href="{{values.appPassword_instructions}}" tabindex="-1">{{_ 'Instructions'
                                 templateLocale }}</a></span>
                         <span class="ee-tooltip-content" role="tooltip">{{_
-                            '%s accounts require an application password for %s.' templateLocale
+                            '%s accounts require an app password for %s.' templateLocale
                             values.appPassword_provider "IMAP"}}</span>
                     </span>
                 </div>
@@ -89,7 +104,7 @@ dropdown allows skipping the test. --}}
                 {{/if}}
 
                 <label class="ee-label" for="imap_auth_pass">
-                    {{_ "Application Password" templateLocale }}
+                    {{_ "App password" templateLocale }}
                 </label>
 
                 {{/unless}}
@@ -129,7 +144,7 @@ dropdown allows skipping the test. --}}
                                 class="ee-icon ee-icon-help-circle ee-icon-muted"></span></span>
                         <span class="ee-tooltip-content" role="tooltip">
                             <strong>{{_ 'TLS for IMAP' templateLocale }}</strong><br>
-                            {{_ 'TLS (also known as SSL) is usually only needed when using port 993. For other ports EmailEngine falls back to using STARTTLS based encryption.' templateLocale }}
+                            {{_ 'Enable this option for a direct TLS connection, usually on port 993. Otherwise, EmailEngine uses STARTTLS if the server supports it.' templateLocale }}
                         </span>
                     </span>
                 </div>
@@ -188,7 +203,7 @@ dropdown allows skipping the test. --}}
                                 href="{{values.appPassword_instructions}}" tabindex="-1">{{_ 'Instructions'
                                 templateLocale }}</a></span>
                         <span class="ee-tooltip-content" role="tooltip">{{_
-                            '%s accounts require an application password for %s.' templateLocale
+                            '%s accounts require an app password for %s.' templateLocale
                             values.appPassword_provider 'SMTP'}}</span>
                     </span>
                 </div>
@@ -196,7 +211,7 @@ dropdown allows skipping the test. --}}
                 {{/if}}
 
                 <label class="ee-label" for="smtp_auth_pass">
-                    {{_ "Application Password" templateLocale }}
+                    {{_ "App password" templateLocale }}
                 </label>
 
                 {{/unless}}
@@ -236,7 +251,7 @@ dropdown allows skipping the test. --}}
                                 class="ee-icon ee-icon-help-circle ee-icon-muted"></span></span>
                         <span class="ee-tooltip-content" role="tooltip">
                             <strong>{{_ 'TLS for SMTP' templateLocale }}</strong><br>
-                            {{_ 'TLS (also known as SSL) is usually only needed when using port 465. For other ports EmailEngine falls back to using STARTTLS based encryption.' templateLocale }}
+                            {{_ 'Enable this option for a direct TLS connection, usually on port 465. Otherwise, EmailEngine uses STARTTLS if the server supports it.' templateLocale }}
                         </span>
                     </span>
                 </div>
@@ -267,7 +282,7 @@ dropdown allows skipping the test. --}}
             <details class="ee-dropdown">
                 <summary id="submit-settings-btn-down" class="ee-btn ee-btn-neutral ee-dropdown-toggle"
                     aria-haspopup="menu">
-                    <span class="ee-sr-only">{{_ "Toggle Dropdown" templateLocale }}</span>
+                    <span class="ee-sr-only">{{_ "Show or hide options" templateLocale }}</span>
                     <span class="ee-icon ee-icon-chevron-down"></span>
                 </summary>
                 <ul class="ee-dropdown-menu" role="menu" aria-labelledby="submit-settings-btn-down">

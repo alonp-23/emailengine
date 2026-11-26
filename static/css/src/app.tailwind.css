@@ -158,6 +158,14 @@
     z-index: 60;
     max-width: 20rem;
 }
+/* the message browser (ee-client 2) docks its compose panel at z-index 2000,
+ * above the page. The dialogs it asks through confirmMethod/alertMethod
+ * ("Unsaved message", "Delete message") are the page's own modals, so they
+ * stack above that panel, or the panel covers their buttons. */
+#confirmModal,
+#alertModal {
+    z-index: 2100;
+}
 .tooltip .tooltip-body {
     /* block, not inline: an inline body fragments its background into one
      * box per wrapped line */
@@ -193,6 +201,16 @@
  * far) - a semantic-colored link would need an explicit color override. */
 .link {
     --link-color: var(--color-primary);
+}
+
+/* The message browser widget (@postalsys/ee-client on the account Browse page) takes its accent
+ * from these. It puts white text on --ee-accent in both themes, so that stays the light theme's
+ * primary above; --ee-accent-light is what it uses for text and outlines in dark mode, the dark
+ * theme's lighter primary. */
+#email-client {
+    --ee-accent: #4c5cc5;
+    --ee-accent-hover: color-mix(in oklab, #4c5cc5 85%, black);
+    --ee-accent-light: #7b86dc;
 }
 
 /* FlyonUI lays a tab strip out as a nowrap flex row with no overflow handling, so one

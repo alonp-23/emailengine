@@ -162,6 +162,213 @@ test('accounts listing', async t => {
     });
 });
 
+test('account page', async t => {
+    const route = capture('../lib/ui-routes/account-routes', async ({ cmd }) => (cmd === 'runIndex' ? 1 : cmd === 'subconnections' ? [] : {}));
+    stub(t, tools, { getServiceSecret: async () => SECRET });
+    stub(t, webhooks, {
+        async list() {
+            return { webhooks: [] };
+        },
+        async getFilterInfo() {
+            return new Map();
+        }
+    });
+
+    // Several renders share one subtest, so the loader stand-in is put back after each
+    const render = async accountData => {
+        const original = Account.prototype.loadAccountData;
+        Account.prototype.loadAccountData = async () => accountData;
+        try {
+            const h = makeToolkit();
+            await route('GET', '/admin/accounts/{account}').handler(makeRequest({ params: { account: `page-${RUN}` } }), h);
+            return h.answers.views[0].context;
+        } finally {
+            Account.prototype.loadAccountData = original;
+        }
+    };
+
+    const base = extra => Object.assign({ account: `page-${RUN}`, name: 'Page', email: 'page@example.com', state: 'connected' }, extra);
+
+    await t.test('EHLO AUTH lines become described mechanisms and leave the extension list', async t => {
+        const context = await render(
+            base({
+                smtp: { host: 'smtp.example.com' },
+                smtpServerEhlo: ['PIPELINING', 'AUTH LOGIN PLAIN', 'SIZE 1000', 'auth xoauth2 OAuthBearer login', 'AUTH', 'AUTH CRAM-MD5 PLAIN']
+            })
+        );
+
+        assert.deepEqual(context.account.smtpServerEhlo, ['PIPELINING', 'SIZE 1000']);
+        // Lines are read last to first and a repeated mechanism keeps its first place
+        assert.deepEqual(context.account.smtpAuthMechanisms, [
+            'CRAM-MD5',
+            { auth: 'PLAIN', rfc: 'RFC4616', url: 'https://www.rfc-editor.org/rfc/rfc4616.html' },
+            { auth: 'xoauth2', rfc: 'xoauth2-protocol', url: 'https://developers.google.com/gmail/imap/xoauth2-protocol#smtp_protocol_exchange' },
+            { auth: 'OAuthBearer', rfc: 'RFC7628', url: 'https://www.rfc-editor.org/rfc/rfc7628.html' },
+            { auth: 'login', rfc: 'draft-murchison-sasl-login', url: 'https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login' },
+            { auth: 'LOGIN', rfc: 'draft-murchison-sasl-login', url: 'https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login' }
+        ]);
+    });
+
+    await t.test('an account without EHLO lines gets no mechanism list', async t => {
+        assert.equal((await render(base({ smtpServerEhlo: [] }))).account.smtpAuthMechanisms, undefined);
+        assert.equal((await render(base({}))).account.smtpAuthMechanisms, undefined);
+    });
+
+    await t.test('a support URL that is not http(s) is dropped from the server info', async t => {
+        const unsafe = await render(base({ imapServerInfo: { name: 'Server', 'support-url': 'javascript:alert(1)' } }));
+        assert.deepEqual(unsafe.account.imapServerInfo, { name: 'Server' });
+
+        const safe = await render(base({ imapServerInfo: { name: 'Server', 'support-url': 'HTTPS://help.example.com' } }));
+        assert.equal(safe.account.imapServerInfo['support-url'], 'HTTPS://help.example.com');
+    });
+
+    await t.test('the Gmail watch card', async t => {
+        assert.equal((await render(base({}))).gmailWatch, false);
+
+        const future = Date.now() + 3600 * 1000;
+        const active = await render(base({ watchResponse: { expiration: String(future) }, lastWatch: new Date('2026-01-01T00:00:00Z') }));
+        assert.deepEqual(active.gmailWatch, {
+            lastCheckStr: '2026-01-01T00:00:00.000Z',
+            expiresStr: new Date(future).toISOString(),
+            active: true,
+            stateLabel: 'Active',
+            error: false
+        });
+
+        const expired = await render(base({ watchResponse: { expiration: '1000' } }));
+        assert.equal(expired.gmailWatch.stateLabel, 'Expired');
+        assert.equal(expired.gmailWatch.active, false);
+        assert.equal(expired.gmailWatch.lastCheckStr, null);
+
+        const failed = await render(
+            base({
+                watchFailure: {
+                    time: Date.parse('2026-02-01T00:00:00Z'),
+                    err: 'Topic not found',
+                    req: { url: 'https://gmail.googleapis.com/watch', status: 404, contentType: 'application/json', response: '{}', extra: 'dropped' }
+                }
+            })
+        );
+        assert.deepEqual(failed.gmailWatch, {
+            lastCheckStr: '2026-02-01T00:00:00.000Z',
+            expiresStr: false,
+            active: false,
+            stateLabel: 'Failed',
+            error: 'Topic not found',
+            request: { url: 'https://gmail.googleapis.com/watch', status: 404, contentType: 'application/json', response: '{}' }
+        });
+
+        const unnamed = await render(base({ watchFailure: {} }));
+        assert.equal(unnamed.gmailWatch.error, 'Failed to set up Gmail pubsub watch');
+        assert.equal('request' in unnamed.gmailWatch, false);
+
+        // An application without a Pub/Sub app has no watch, whatever an earlier one left behind
+        assert.equal((await render(base({ watchFailure: { err: 'old' }, _app: {} }))).gmailWatch, false);
+    });
+
+    await t.test('the top-of-page alert', async t => {
+        const healthy = await render(base({}));
+        assert.equal(healthy.accountAlert, null);
+        assert.equal(healthy.accountParked, false);
+
+        const parked = await render(
+            base({ state: 'authenticationError', imap: { disabled: true }, _authFailureDisabledAt: '2026-03-01T00:00:00.000Z', syncError: { path: 'INBOX' } })
+        );
+        assert.deepEqual(parked.accountAlert, {
+            title: 'Syncing was switched off',
+            message:
+                'EmailEngine stopped connecting this account after repeated authentication failures. Re-authenticating it turns syncing back on; "Resume syncing" retries with the stored credentials.',
+            timeLabel: 'Switched off',
+            time: '2026-03-01T00:00:00.000Z'
+        });
+        assert.equal(parked.accountParked, true);
+
+        const failing = await render(base({ state: 'authenticationError', syncError: { path: 'INBOX' } }));
+        assert.equal(failing.accountAlert.title, failing.account.stateLabel.name);
+        assert.equal(failing.accountAlert.message, failing.account.stateLabel.error);
+        assert.deepEqual(Object.keys(failing.accountAlert), ['title', 'message']);
+        assert.equal(failing.account.stateLabel.type, 'error');
+
+        const stalled = await render(base({ syncError: { path: 'Archive', error: { responseText: 'NO [LIMIT]', error: 'other' } } }));
+        assert.deepEqual(stalled.accountAlert, { title: 'Sync stalled', path: 'Archive', message: 'NO [LIMIT]' });
+
+        const stalledPlain = await render(base({ syncError: { path: 'Archive', error: { error: 'Timeout' } } }));
+        assert.equal(stalledPlain.accountAlert.message, 'Timeout');
+
+        const stalledBare = await render(base({ syncError: { path: 'Archive' } }));
+        assert.equal(stalledBare.accountAlert.message, null);
+    });
+
+    await t.test('webhook routing reads the account, the global settings and the deliverable routes', async t => {
+        const filterLookups = [];
+        stub(t, settings, {
+            async getMulti(...keys) {
+                assert.deepEqual(keys, ['webhooksEnabled', 'webhooks', 'webhookEvents', 'inboxNewOnly', 'webhooksCustomHeaders']);
+                return {
+                    webhooksEnabled: true,
+                    webhooks: 'https://hooks.example.com/global',
+                    webhookEvents: ['messageNew'],
+                    inboxNewOnly: true,
+                    webhooksCustomHeaders: [{ key: 'X-A', value: '1' }]
+                };
+            }
+        });
+        stub(t, webhooks, {
+            async list(page, pageSize) {
+                assert.deepEqual([page, pageSize], [0, 1000]);
+                return {
+                    webhooks: [
+                        { id: 'r1', name: 'One', enabled: true, targetUrl: 'https://one.example.com' },
+                        { id: 'r2', name: 'Two', enabled: false, targetUrl: 'https://two.example.com' },
+                        { id: 'r3', name: 'Three', enabled: true, targetUrl: 'https://three.example.com' }
+                    ]
+                };
+            },
+            async getFilterInfo(ids) {
+                filterLookups.push(ids);
+                return new Map([
+                    ['r1', true],
+                    ['r3', false]
+                ]);
+            }
+        });
+
+        const context = await render(
+            base({
+                webhooks: 'https://hooks.example.com/account',
+                webhooksCustomHeaders: [
+                    { key: 'X-B', value: '2' },
+                    { key: 'X-C', value: '3' }
+                ]
+            })
+        );
+        assert.deepEqual(filterLookups, [['r1', 'r3']], 'only deliverable routes are probed for a filter');
+        assert.deepEqual(context.webhookRouting, {
+            enabled: true,
+            defaultRoute: {
+                url: 'https://hooks.example.com/account',
+                source: 'account',
+                events: ['messageNew'],
+                allEvents: false,
+                inboxNewOnly: true,
+                customHeadersLabel: '2 account-specific'
+            },
+            customRoutes: [
+                { id: 'r1', name: 'One', targetUrl: 'https://one.example.com', missingFilter: false },
+                { id: 'r3', name: 'Three', targetUrl: 'https://three.example.com', missingFilter: true }
+            ]
+        });
+    });
+
+    await t.test('the path list and the advanced section', async t => {
+        assert.equal((await render(base({ path: '*' }))).account.path, null);
+        assert.equal((await render(base({}))).account.path, null);
+        const scoped = await render(base({ path: ['INBOX', 'Sent'] }));
+        assert.deepEqual(scoped.account.path, ['INBOX', 'Sent']);
+        assert.deepEqual(scoped.showAdvanced, ['INBOX', 'Sent']);
+    });
+});
+
 test('hosted form success page', async t => {
     const route = capture('../lib/ui-routes/account-routes');
     stub(t, tools, { getServiceSecret: async () => SECRET });
@@ -481,6 +688,132 @@ test('account edit form stores the IDLE restart interval in milliseconds', async
     // The same bounds as the API field
     assert.ok(validate(Object.assign({}, formFields, { imap_maxIdleTime: '5' })).error, 'below the floor is refused');
     assert.ok(validate(Object.assign({}, formFields, { imap_maxIdleTime: '3600' })).error, 'above the ceiling is refused');
+});
+
+// The rest of the account edit form: the SMTP section, the stored passwords, a save that changes
+// nothing, and the form coming back when the save fails
+test('account edit form saves the connection sections without touching what was not changed', async t => {
+    const account = `edit-conn-${RUN}`;
+    const call = async ({ cmd }) => (cmd === 'runIndex' ? 1 : {});
+    const route = capture('../lib/ui-routes/account-routes', call);
+    const editRoute = route('POST', '/admin/accounts/{account}/edit');
+
+    const validated = payload => {
+        const { value, error } = editRoute.options.validate.payload.validate(payload, editRoute.options.validate.options);
+        assert.ifError(error);
+        return value;
+    };
+
+    const accountObject = new Account({ redis, account, secret: await getSecret(), call, logger });
+    await accountObject.create({
+        account,
+        name: 'Connections',
+        email: 'conn@example.com',
+        // No `disabled` key: the form always submits that checkbox, and an untouched save must not
+        // add the key, since any imap diff forces a reconnect
+        imap: { host: 'imap.example.com', port: 993, secure: true, auth: { user: 'iu', pass: 'ip' }, tls: { rejectUnauthorized: false } },
+        smtp: { host: 'smtp.example.com', port: 465, secure: true, auth: { user: 'su', pass: 'sp' } }
+    });
+    t.after(() => accountObject.delete().catch(() => false));
+
+    // What the edit page posts for this account when nothing is changed: every input shown, both
+    // password inputs empty, the checkboxes as the page renders them from the stored account
+    const untouchedForm = {
+        name: 'Connections',
+        email: 'conn@example.com',
+        customHeaders: '',
+        imap: 'on',
+        imap_auth_user: 'iu',
+        imap_host: 'imap.example.com',
+        imap_port: 993,
+        imap_secure: 'on',
+        imap_tls_ignoreCertErrors: 'on',
+        imap_requireTLS: 'on',
+        imap_disabled: '',
+        smtp: 'on',
+        smtp_auth_user: 'su',
+        smtp_host: 'smtp.example.com',
+        smtp_port: 465,
+        smtp_secure: 'on',
+        smtp_requireTLS: 'on'
+    };
+
+    const save = async payload => {
+        const h = makeToolkit();
+        const request = makeRequest({ params: { account }, payload: validated(payload) });
+        await editRoute.handler(request, h);
+        return { h, request };
+    };
+
+    await t.test('an untouched save leaves both connection objects as they were', async () => {
+        const before = await accountObject.loadAccountData();
+
+        const { h } = await save(untouchedForm);
+
+        assert.deepEqual(h.answers.redirects, [`/admin/accounts/${account}`]);
+        const after = await accountObject.loadAccountData();
+        assert.deepEqual(after.imap, before.imap, 'no key added to or changed in imap');
+        assert.deepEqual(after.smtp, before.smtp, 'no key added to or changed in smtp');
+    });
+
+    await t.test('the SMTP section is saved and an empty password input keeps the stored passwords', async () => {
+        await save(Object.assign({}, untouchedForm, { smtp_host: 'mail.example.org', smtp_port: 587, smtp_secure: '', smtp_auth_user: 'su2' }));
+
+        const stored = await accountObject.loadAccountData();
+        assert.equal(stored.smtp.host, 'mail.example.org');
+        assert.equal(stored.smtp.port, 587);
+        assert.equal(stored.smtp.secure, false);
+        assert.deepEqual(stored.smtp.auth, { user: 'su2', pass: 'sp' }, 'the stored SMTP password is kept');
+        assert.deepEqual(stored.imap.auth, { user: 'iu', pass: 'ip' }, 'the stored IMAP password is kept');
+    });
+
+    await t.test('a submitted password replaces the stored one and the checkboxes write their keys', async () => {
+        await save(
+            Object.assign({}, untouchedForm, {
+                imap_auth_pass: 'ip2',
+                smtp_auth_pass: 'sp2',
+                imap_tls_ignoreCertErrors: '',
+                imap_requireTLS: '',
+                smtp_tls_ignoreCertErrors: 'on',
+                imap_disableIMAP4rev2: 'on',
+                imap_resyncDelay: '600'
+            })
+        );
+
+        const stored = await accountObject.loadAccountData();
+        assert.equal(stored.imap.auth.pass, 'ip2');
+        assert.equal(stored.smtp.auth.pass, 'sp2');
+        assert.deepEqual(stored.imap.tls, { rejectUnauthorized: true });
+        assert.equal(stored.imap.requireTLS, false);
+        assert.equal(stored.imap.disableIMAP4rev2, true);
+        assert.equal(stored.imap.resyncDelay, 600);
+        assert.deepEqual(stored.smtp.tls, { rejectUnauthorized: false });
+        assert.ok(!('requireTLS' in stored.smtp), 'an unchanged checkbox writes no key');
+    });
+
+    await t.test('a failed save renders the form again from the submitted values', async t => {
+        stub(t, Account.prototype, {
+            async update() {
+                throw new Error('storage refused');
+            }
+        });
+
+        const { h, request } = await save(Object.assign({}, untouchedForm, { name: 'Not saved', imap_auth_pass: 'secret', smtp_auth_pass: 'secret' }));
+
+        assert.deepEqual(h.answers.redirects, []);
+        assert.deepEqual(request.flashes, [{ type: 'danger', message: `Couldn't save account settings. Try again.` }]);
+        const view = h.answers.views[0];
+        assert.equal(view.template, 'accounts/edit');
+        assert.equal(view.options.layout, 'app');
+        assert.equal(view.context.account, account);
+        assert.equal(view.context.values.name, 'Not saved', 'the submitted values come back');
+        assert.equal(view.context.values.imap_auth_pass, '', 'a submitted password is never rendered back');
+        assert.equal(view.context.values.smtp_auth_pass, '');
+        assert.equal(view.context.values.oauth2, false);
+        assert.equal(view.context.hasIMAPPass, true);
+        assert.equal(view.context.hasSMTPPass, true);
+        assert.equal(view.context.pageTitle, 'Accounts - conn@example.com');
+    });
 });
 
 test('unsubscribe form', async t => {

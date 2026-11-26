@@ -6,7 +6,15 @@
 const test = require('node:test');
 const assert = require('node:assert').strict;
 
-const { messageWebSafeHtml, webSafeTextResponse, applyWebSafeHtmlOptions, collapseThreadHistory, WEB_SAFE_HTML_MAX_INPUT } = require('../lib/web-safe-html');
+const {
+    messageWebSafeHtml,
+    webSafeTextResponse,
+    applyWebSafeHtmlOptions,
+    collapseThreadHistory,
+    WEB_SAFE_HTML_MAX_INPUT,
+    PLAINTEXT_STYLE_BLOCK
+} = require('../lib/web-safe-html');
+const textTools = require('@postalsys/email-text-tools');
 const { COLLAPSE_CLASS, COLLAPSE_TOGGLE_CLASS } = require('../lib/consts');
 const exitWhenStandalone = require('./helpers/exit-standalone');
 
@@ -121,10 +129,10 @@ test('collapseThreadHistory', async t => {
         assert.match(visible, /cutover on Saturday morning/);
         assert.doesNotMatch(visible, /maintenance window/);
         assert.match(hidden, /When do you want to do the server migration/);
-        // Quoted lines still become blockquotes, and the styling mimeHtml applies to plain text
-        // bodies travels with them.
+        // Quoted lines still become blockquotes and keep their colouring, without a fixed font
         assert.match(hidden, /<blockquote/);
-        assert.match(collapsed.html, /font-family: sans-serif/);
+        assert.match(collapsed.html, /color: darkblue/);
+        assert.doesNotMatch(collapsed.html, /font-size: 12px/);
     });
 
     await t.test('normalizes CRLF text so the cut lands where the extractor reported it', async () => {
@@ -359,6 +367,22 @@ test('messageWebSafeHtml: a body the sanitizer can not handle is rendered as esc
 });
 
 test('webSafeTextResponse', async t => {
+    await t.test('the plain text style block drops the package font rule and keeps the quote colours', () => {
+        // derived from @postalsys/email-text-tools by a regex: a change to the rule's text there
+        // must fail here rather than bring a fixed font back unnoticed
+        assert.notEqual(PLAINTEXT_STYLE_BLOCK, textTools.INLINE_STYLE_BLOCK);
+        assert.doesNotMatch(PLAINTEXT_STYLE_BLOCK, /font-family|font-size/);
+        assert.match(PLAINTEXT_STYLE_BLOCK, /blockquote\s*\{/);
+    });
+
+    await t.test('renders a plain text message in the host font, with its quotes coloured', async () => {
+        const html = await messageWebSafeHtml({ subject: 'Hello', text: { plain: 'Hi there\n\n> quoted line' } });
+        assert.match(html, /Hi there/);
+        assert.match(html, /<blockquote[^>]*color: darkblue/);
+        assert.doesNotMatch(html, /font-size: 12px/);
+        assert.doesNotMatch(html, /font-family: sans-serif/);
+    });
+
     await t.test('returns one rendering and drops the plaintext twin', async () => {
         const response = await webSafeTextResponse({
             html: '<html><body><div>Hello there</div></body></html>',
@@ -451,4 +475,64 @@ test('a body over the limit renders as escaped plain text without being parsed',
     const noPlain = await messageWebSafeHtml({ text: { html } });
     assert.ok(!noPlain.includes('<script'));
     assert.match(noPlain, /too large to display/);
+});
+
+test('the sanitizer is loaded once, and a failure to load it is remembered', async t => {
+    const { createMimeHtmlLoader } = require('../lib/web-safe-html');
+
+    await t.test('a loader that throws is called once and hands out null from then on', () => {
+        let calls = 0;
+        const getMimeHtml = createMimeHtmlLoader(() => {
+            calls++;
+            throw new TypeError("Cannot read properties of undefined (reading 'bind')");
+        });
+        for (let i = 0; i < 5; i++) {
+            assert.equal(getMimeHtml(), null);
+        }
+        assert.equal(calls, 1);
+    });
+
+    await t.test('a loader that works hands out the function every time', () => {
+        const fn = () => 'html';
+        const getMimeHtml = createMimeHtmlLoader(() => fn);
+        assert.equal(getMimeHtml(), fn);
+        assert.equal(getMimeHtml(), fn);
+    });
+});
+
+test('messageWebSafeHtml renders escaped plain text when the sanitizer can not be loaded', () => {
+    // A fresh process whose @postalsys/email-text-tools throws on the first touch of mimeHtml, the
+    // way the jsdom bundle does on a Node.js release too old for it
+    const { execFileSync } = require('node:child_process');
+    const script = [
+        "const path = require.resolve('@postalsys/email-text-tools');",
+        'const real = require(path);',
+        'let loads = 0;',
+        'const fake = Object.create(real);',
+        "Object.defineProperty(fake, 'mimeHtml', { get() { loads++; throw new TypeError('bundle failed to load'); } });",
+        'require.cache[path].exports = fake;',
+        "const { messageWebSafeHtml } = require('./lib/web-safe-html');",
+        '(async () => {',
+        '    const outputs = [];',
+        '    for (let i = 0; i < 3; i++) {',
+        "        outputs.push(await messageWebSafeHtml({ text: { html: '<p onclick=\"x()\">hi</p><script>alert(1)</script>', plain: 'hi <there> & ' + i } }));",
+        '    }',
+        "    outputs.push(await messageWebSafeHtml({ text: { html: '<p>html only</p>' } }));",
+        '    console.log(JSON.stringify({ loads, outputs }));',
+        '    process.exit(0);',
+        '})();'
+    ].join('\n');
+    const output = execFileSync(process.execPath, ['-e', script], {
+        cwd: require('path').join(__dirname, '..'),
+        encoding: 'utf-8',
+        env: Object.assign({}, process.env, { EENGINE_LOG_LEVEL: 'fatal' })
+    });
+    const { loads, outputs } = JSON.parse(output.trim().split('\n').pop());
+    assert.equal(loads, 1);
+    assert.equal(outputs[0], '<div style="white-space: pre-wrap">hi &lt;there&gt; &amp; 0</div>');
+    assert.equal(outputs[2], '<div style="white-space: pre-wrap">hi &lt;there&gt; &amp; 2</div>');
+    assert.match(outputs[3], /the HTML sanitizer failed to load/);
+    for (const html of outputs) {
+        assert.ok(!/<script|onclick|<p/.test(html), html);
+    }
 });
