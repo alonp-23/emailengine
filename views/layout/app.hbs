@@ -81,6 +81,10 @@
                         <div class="dropdown-menu dropdown-open:opacity-100 hidden min-w-60 p-0"
                             role="menu" aria-labelledby="search-filter-dropdown">
                             <div class="max-h-96 overflow-y-auto p-2">
+                                {{#each filterMenu.quickViews}}
+                                <a class="dropdown-item{{#if active}} dropdown-active{{/if}}" href="{{url}}">{{label}}</a>
+                                {{/each}}
+                                <div class="divider my-1"></div>
                                 {{#each filterMenu.groups}}
                                 <div class="dropdown-header px-2 pt-2 pb-1 text-xs uppercase text-base-content/60">{{title}}</div>
                                 {{#each options}}

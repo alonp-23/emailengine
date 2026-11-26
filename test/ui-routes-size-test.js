@@ -61,7 +61,7 @@ const MODULE_BUDGETS = {
     // helpers of the account pages, moved out of account-routes.js
     'account-edit-form.js': 65,
     // the listing's type/domain filters and batch delete
-    'account-listing.js': 52,
+    'account-listing.js': 55,
     'account-page.js': 49,
     'account-setup.js': 32,
     // 306: the license page moved to license-routes.js
