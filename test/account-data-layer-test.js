@@ -265,6 +265,38 @@ test('listAccounts decrypts no credential', async () => {
     }
 });
 
+test('listAccounts filters by types after classifying, then pages', async () => {
+    const flat = obj => Object.entries(obj).flat();
+    const imapRow = n => ({ account: `imap-${n}`, state: 'connected', imap: JSON.stringify({ host: 'imap.example.com', auth: { user: 'u' } }) });
+    const smtpRow = n => ({ account: `smtp-${n}`, state: 'connected', smtp: JSON.stringify({ host: 'smtp.example.com' }) });
+    const delegatedRow = { account: 'deleg-1', state: 'connected', oauth2: JSON.stringify({ auth: { user: 'x', delegatedAccount: 'gone' } }) };
+    const rows = [imapRow(1), smtpRow(1), delegatedRow, imapRow(2), smtpRow(2), imapRow(3)];
+
+    const calls = [];
+    const accountObject = createAccount({
+        account: false,
+        call: async () => 1,
+        redis: Object.assign(createMockRedis(), {
+            sListAccounts: async (...callArgs) => {
+                calls.push(callArgs);
+                return [rows.length, 0, rows.map(flat)];
+            },
+            hgetall: async () => ({})
+        })
+    });
+
+    const list = await accountObject.listAccounts(['connected', 'errors'], 'x', 1, 2, { type: ['imap', 'sending'], searchField: 'domain' });
+
+    // every row is fetched so the page is cut from the classified ones; 'errors' expands into its states
+    assert.deepStrictEqual(calls[0].slice(1), ['connected,authenticationError,connectError', 0, Number.MAX_SAFE_INTEGER, calls[0][4], 'x', 'domain']);
+    assert.strictEqual(list.total, 5);
+    assert.strictEqual(list.pages, 3);
+    assert.deepStrictEqual(
+        list.accounts.map(entry => entry.account),
+        ['imap-2', 'smtp-2']
+    );
+});
+
 test('token renewal writes only the token fields, and only over the grant it used', async t => {
     const stored = {
         account: 'acc',

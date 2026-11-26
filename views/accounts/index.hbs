@@ -4,14 +4,83 @@
 
 {{> ui/search-crumb parentHref="/admin/accounts" parentLabel="Accounts" query=query}}
 
+{{!-- The status and type filters live in the topbar filter menu; this only says which apply --}}
+{{#if filtersActive}}
+<div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
+    <span class="text-base-content/60">Filtered by</span>
+    {{#each activeFilters}}{{> ui/badge label=(concat group ": " label) variant="neutral"}}{{/each}}
+    <a href="{{clearFiltersUrl}}" class="link link-animated">Clear filters</a>
+</div>
+{{/if}}
+
 {{#if accounts}}
-{{> accounts_table showActions=true}}
+{{!-- Shown by the page script while at least one row is checked --}}
+<div id="batchBar" class="hidden flex items-center gap-3 mb-4 rounded-box bg-base-200 px-4 py-2">
+    <span class="text-sm"><strong id="batchCount">0</strong> selected</span>
+    {{> ui/btn label="Delete selected" size="sm" variant="error" style="soft" icon="icon-[tabler--trash]" overlay="#batchDeleteAccounts"}}
+    {{> ui/btn label="Clear selection" size="sm" variant="neutral" style="text" id="batchClear"}}
+</div>
+
+{{> accounts_table showActions=true selectable=true}}
 {{else}}
-{{> ui/list-empty noun="accounts" query=query filterActive=state firstPage=firstPage createOverlay="#addAccount" createLabel="Add your first account" clearHref="/admin/accounts"}}
+{{> ui/list-empty noun="accounts" query=query filterActive=filtersActive firstPage=firstPage createOverlay="#addAccount" createLabel="Add your first account" clearHref="/admin/accounts"}}
 {{/if}}
 
 {{#> ui/delete-modal id="deleteAccount" noun="account" action="/admin/accounts"}}
 Delete <strong class="delete-target-name"></strong> from EmailEngine? This removes its synced data, account-specific templates, access tokens, and queued emails. Emails on the mail server are not deleted. This action cannot be undone.
 {{/ui/delete-modal}}
 
+{{!-- The row checkboxes join this form through their form="batchDeleteForm" attribute --}}
+{{#> ui/confirm-modal id="batchDeleteAccounts" title="Delete accounts" action="/admin/accounts/batch-delete" formId="batchDeleteForm"
+fieldName="returnTo" fieldValue=currentUrl submitLabel="Delete accounts"}}
+Delete <strong class="batch-delete-count">0</strong> selected account(s) from EmailEngine? This removes their synced data, account-specific templates, access tokens, and queued emails. Emails on the mail server are not deleted. This action cannot be undone.
+{{/ui/confirm-modal}}
+
 {{>add_account_modal}}
+
+<script data-cfasync="false" nonce="{{cspNonce}}">
+    document.addEventListener('DOMContentLoaded', () => {
+        let all = document.getElementById('batchSelectAll');
+        let bar = document.getElementById('batchBar');
+        if (!all || !bar) {
+            return;
+        }
+
+        let boxes = () => Array.from(document.querySelectorAll('.batch-select'));
+
+        let update = () => {
+            let list = boxes();
+            let checked = list.filter(box => box.checked).length;
+            bar.classList.toggle('hidden', !checked);
+            document.getElementById('batchCount').textContent = checked;
+            for (let elm of document.querySelectorAll('.batch-delete-count')) {
+                elm.textContent = checked;
+            }
+            all.checked = checked > 0 && checked === list.length;
+            all.indeterminate = checked > 0 && checked < list.length;
+        };
+
+        all.addEventListener('change', () => {
+            for (let box of boxes()) {
+                box.checked = all.checked;
+            }
+            update();
+        });
+
+        document.addEventListener('change', e => {
+            if (e.target.classList && e.target.classList.contains('batch-select')) {
+                update();
+            }
+        });
+
+        document.getElementById('batchClear').addEventListener('click', () => {
+            for (let box of boxes()) {
+                box.checked = false;
+            }
+            update();
+        });
+
+        // A back/forward cache restore can keep boxes checked
+        update();
+    });
+</script>

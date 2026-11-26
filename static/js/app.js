@@ -222,6 +222,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // topbar filter menu: Clear unticks every box and applies
+    for (let btn of document.querySelectorAll('.filter-menu-clear')) {
+        btn.addEventListener('click', () => {
+            for (let box of btn.closest('.dropdown-menu').querySelectorAll('input[type="checkbox"]')) {
+                box.checked = false;
+            }
+            btn.form.submit();
+        });
+    }
+
     // Secondary navigation column (views/layout/app.hbs): a full column beside the content
     // from lg up, a disclosure below that. aria-expanded on the button is the whole state -
     // the panel derives its visibility from it in CSS (peer-aria-expanded:block), so there is

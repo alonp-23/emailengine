@@ -214,8 +214,8 @@ test('sListAccounts', async t => {
         await redis.hset(`${REDIS_PREFIX}iad:${entry.account}`, entry);
     }
 
-    const list = async (state, skip, count, search) => {
-        const [total, usedSkip, rows] = await redis.sListAccounts(listKey, state, skip, count, REDIS_PREFIX, search || '');
+    const list = async (state, skip, count, search, searchField) => {
+        const [total, usedSkip, rows] = await redis.sListAccounts(listKey, state, skip, count, REDIS_PREFIX, search || '', searchField || '');
         const ids = rows.map(row => {
             const obj = {};
             for (let i = 0; i < row.length; i += 2) {
@@ -242,6 +242,17 @@ test('sListAccounts', async t => {
         assert.deepEqual(await list('*', 0, 10, 'EXAMPLE.ORG'), { total: 2, skip: 0, ids: ['acc-04', 'acc-05'] });
         assert.deepEqual(await list('*', 0, 10, 'carol'), { total: 1, skip: 0, ids: ['acc-03'] });
         assert.deepEqual(await list('connected', 0, 10, 'example.org'), { total: 1, skip: 0, ids: ['acc-05'] });
+    });
+
+    await t.test('limits the search to one field', async () => {
+        assert.deepEqual(await list('*', 0, 10, 'EXAMPLE.org', 'domain'), { total: 2, skip: 0, ids: ['acc-04', 'acc-05'] });
+        assert.deepEqual(await list('*', 0, 1, 'ample.com', 'domain'), { total: 3, skip: 0, ids: ['acc-01'] });
+        // the local part is not the domain
+        assert.deepEqual(await list('*', 0, 10, 'alice', 'domain'), { total: 0, skip: 0, ids: [] });
+        assert.deepEqual(await list('*', 0, 10, 'acc-0', 'name'), { total: 0, skip: 0, ids: [] });
+        assert.deepEqual(await list('*', 0, 10, 'acc-02', 'account'), { total: 1, skip: 0, ids: ['acc-02'] });
+        assert.deepEqual(await list('*', 0, 10, 'bob@', 'email'), { total: 1, skip: 0, ids: ['acc-02'] });
+        assert.deepEqual(await list('connected', 0, 10, 'eve', 'name'), { total: 1, skip: 0, ids: ['acc-05'] });
     });
 
     await t.test('a page past the end reports the matching total, not every account', async () => {

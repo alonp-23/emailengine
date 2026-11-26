@@ -56,9 +56,12 @@ test('routes-ui.js stays within the size budget', () => {
 // handler code. Route option objects and joi schemas are expressions, so a schema is not counted.
 const MODULE_BUDGETS = {
     // 514: the hosted form's discovery, OAuth2 sign-in page and listed applications live in provider-signin.js
-    'account-routes.js': 514,
+    // 503: the listing's URL builder, filters and filter menu live in account-listing.js
+    'account-routes.js': 503,
     // helpers of the account pages, moved out of account-routes.js
     'account-edit-form.js': 65,
+    // the listing's type/domain filters and batch delete
+    'account-listing.js': 52,
     'account-page.js': 49,
     'account-setup.js': 32,
     // 306: the license page moved to license-routes.js
